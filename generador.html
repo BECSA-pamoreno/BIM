@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Nombres BIM · BECSA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange: #F28C00;
+  --orange-dark: #D97A00;
+  --orange-light: #FF9D1A;
+  --orange-faint: rgba(242,140,0,0.09);
+  --orange-border: rgba(242,140,0,0.30);
+  --navy: #1B3A6B;
+  --navy-dark: #122850;
+  --navy-mid: #2C5282;
+  --bg: #F7F8FA;
+  --white: #FFFFFF;
+  --gray-100: #F7F8FA;
+  --gray-200: #EDF0F4;
+  --gray-300: #D2D9E4;
+  --gray-400: #A3AEBF;
+  --gray-500: #6B7A93;
+  --gray-700: #374151;
+  --gray-900: #1B2840;
+  --sans: 'Inter', system-ui, sans-serif;
+  --cond: 'Inter', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --radius: 6px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--gray-100);
+  color: var(--gray-900);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ── */
+header {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  border-top: 4px solid var(--orange);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  height: 60px;
+  gap: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(27,58,107,0.07);
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 24px;
+  border-right: 1px solid var(--gray-200);
+}
+
+.logo-mark {
+  background: var(--orange);
+  color: white;
+  font-family: var(--cond);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  padding: 6px 12px;
+  line-height: 1;
+  border-radius: 4px;
+}
+
+.header-title {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.2px;
+  color: var(--navy);
+  padding-left: 24px;
+}
+
+.header-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gray-400);
+  padding-left: 4px;
+}
+
+.header-iso {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--navy-mid);
+  border: 1px solid var(--gray-300);
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  background: var(--gray-100);
+}
+
+/* ── LAYOUT ── */
+.app {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 60px);
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: var(--white);
+  border-right: 1px solid var(--gray-200);
+  overflow-y: auto;
+  padding-bottom: 24px;
+}
+
+.sidebar-section-header {
+  background: var(--gray-100);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 10px 16px;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gray-400);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-700);
+  transition: all 0.12s;
+  line-height: 1.2;
+}
+
+.nav-item:hover {
+  background: var(--orange-faint);
+  color: var(--navy);
+  border-left-color: var(--gray-300);
+}
+
+.nav-item.active {
+  background: var(--orange-faint);
+  color: var(--navy);
+  border-left-color: var(--orange);
+  font-weight: 600;
+}
+
+.nav-icon {
+  width: 22px;
+  height: 22px;
+  background: var(--gray-100);
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  flex-shrink: 0;
+  color: var(--gray-400);
+}
+
+.nav-item.active .nav-icon {
+  background: rgba(242,140,0,0.15);
+  color: var(--orange-dark);
+}
+
+/* ── MAIN ── */
+main {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── RESULT BAR ── */
+.result-bar {
+  background: var(--navy);
+  padding: 0 28px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 3px solid var(--orange);
+}
+
+.result-label {
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  white-space: nowrap;
+}
+
+.result-name {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 500;
+  color: #7EE8A2;
+  flex: 1;
+  word-break: break-all;
+  letter-spacing: 0.3px;
+  min-width: 0;
+}
+
+.result-name.empty {
+  color: rgba(255,255,255,0.25);
+  font-size: 13px;
+}
+
+.btn-reset {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: rgba(255,255,255,0.5);
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+  border-radius: var(--radius);
+}
+
+.btn-reset:hover {
+  color: white;
+  border-color: rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.07);
+}
+
+.btn-copy {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: white;
+  background: var(--orange);
+  border: none;
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+  border-radius: var(--radius);
+}
+
+.btn-copy:hover { background: var(--orange-light); }
+.btn-copy.copied { background: #2E8B57; }
+
+/* ── TOKENS ── */
+.tokens-bar {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 10px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 40px;
+  align-items: center;
+}
+
+.token {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.token.code { background: var(--orange-faint); color: var(--orange-dark); border: 1px solid var(--orange-border); }
+.token.sep { color: var(--gray-400); background: none; border: none; font-size: 13px; padding: 0 1px; }
+.token.desc { background: rgba(27,58,107,0.07); color: var(--navy-mid); border: 1px solid rgba(27,58,107,0.18); }
+.token.dim { background: rgba(34,139,87,0.08); color: #1C6B42; border: 1px solid rgba(34,139,87,0.22); }
+
+/* ── SECTION CONTENT ── */
+.content-area {
+  padding: 24px 28px 40px;
+  flex: 1;
+}
+
+.section-header {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.section-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--orange);
+  color: white;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 3px;
+  margin-bottom: 8px;
+}
+
+.section-header h2 {
+  font-family: var(--sans);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--navy);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.section-header p {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gray-400);
+  letter-spacing: 0.3px;
+}
+
+/* ── FORM ── */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.form-full { grid-column: 1 / -1; }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field label {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.field label .req { color: var(--orange); }
+
+select, input[type="text"] {
+  background: var(--white);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius);
+  color: var(--gray-900);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px 12px;
+  width: 100%;
+  transition: border-color 0.12s, box-shadow 0.12s;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+}
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23A3AEBF'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+
+select:focus, input[type="text"]:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(242,140,0,0.12);
+}
+
+select option { background: white; color: var(--gray-900); }
+
+.code-chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  height: 24px;
+  padding: 0 8px;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  color: var(--gray-400);
+  min-height: 24px;
+  border-radius: 4px;
+}
+
+.code-chip.has-value {
+  background: var(--orange-faint);
+  border-color: var(--orange-border);
+  color: var(--orange-dark);
+  font-weight: 500;
+}
+
+.code-chip.text-value {
+  background: rgba(27,58,107,0.06);
+  border-color: rgba(27,58,107,0.18);
+  color: var(--navy-mid);
+  font-weight: 500;
+}
+
+input[type="text"]::placeholder { color: var(--gray-400); }
+
+/* ── NOTA ── */
+.info-note {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--gray-500);
+  background: var(--gray-100);
+  border-left: 3px solid var(--orange);
+  padding: 8px 12px;
+  grid-column: 1 / -1;
+  line-height: 1.5;
+  border-radius: 0 4px 4px 0;
+}
+
+/* ── SECTIONS ── */
+.generator-section { display: none; }
+.generator-section.active { display: block; }
+
+/* ── SEARCHABLE DROPDOWN ── */
+.searchable-select {
+  position: relative;
+  width: 100%;
+}
+.ss-button {
+  width: 100%;
+  background: var(--white);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius);
+  color: var(--gray-900);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px 32px 9px 12px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  position: relative;
+  transition: border-color 0.12s, box-shadow 0.12s;
+  outline: none;
+}
+.ss-button::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--gray-400);
+  transform: translateY(-50%);
+  transition: transform 0.15s;
+}
+.searchable-select.open .ss-button::after {
+  transform: translateY(-50%) rotate(180deg);
+}
+.ss-button:focus,
+.searchable-select.open .ss-button {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(242,140,0,0.12);
+}
+.ss-button.placeholder .ss-label { color: var(--gray-400); }
+.ss-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ss-button .ss-code-chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--orange-faint);
+  border: 1px solid var(--orange-border);
+  color: var(--orange-dark);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.ss-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(27,58,107,0.15);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 340px;
+}
+.ss-panel[hidden] { display: none !important; }
+.ss-search-wrap {
+  padding: 8px;
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--gray-100);
+  position: relative;
+}
+.ss-search {
+  width: 100%;
+  border: 1px solid var(--gray-300);
+  border-radius: 4px;
+  padding: 7px 10px 7px 30px;
+  font-family: var(--sans);
+  font-size: 12px;
+  outline: none;
+  background: white;
+  color: var(--gray-900);
+}
+.ss-search:focus { border-color: var(--orange); }
+.ss-search-icon {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--gray-400);
+  font-size: 12px;
+}
+.ss-options {
+  overflow-y: auto;
+  max-height: 260px;
+  padding: 4px 0;
+}
+.ss-option {
+  padding: 7px 12px;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  color: var(--gray-700);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.3;
+}
+.ss-option:hover { background: var(--orange-faint); }
+.ss-option.selected {
+  background: var(--orange-faint);
+  color: var(--orange-dark);
+  font-weight: 600;
+}
+.ss-option-code {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--gray-100);
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: var(--gray-500);
+  flex-shrink: 0;
+  min-width: 36px;
+  text-align: center;
+  font-weight: 500;
+}
+.ss-option.selected .ss-option-code {
+  background: rgba(242,140,0,0.18);
+  color: var(--orange-dark);
+}
+.ss-option-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ss-empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--gray-400);
+  font-size: 12px;
+  font-style: italic;
+}
+.ss-clear-row {
+  border-bottom: 1px solid var(--gray-200);
+  padding: 6px 12px;
+  font-size: 11px;
+  color: var(--gray-500);
+  cursor: pointer;
+  font-style: italic;
+}
+.ss-clear-row:hover { background: var(--gray-100); color: var(--gray-700); }
+select.hidden-native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  left: 0;
+  top: 0;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--gray-100); }
+::-webkit-scrollbar-thumb { background: var(--gray-300); }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 720px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  main { padding: 0; }
+  .content-area { padding: 16px; }
+  .result-bar { padding: 0 16px; height: auto; flex-wrap: wrap; padding: 12px 16px; gap: 10px; }
+  .tokens-bar { padding: 10px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-logo">
+    <div class="logo-mark">BEC</div>
+  </div>
+  <span class="header-title">Generador de Nombres BIM</span>
+  <span class="header-sub">&nbsp;· BECSA</span>
+  <a href="index.html" style="margin-left:16px;font-family:var(--sans);font-size:12px;font-weight:600;color:var(--gray-500);text-decoration:none;">← Inicio</a>
+  <div class="header-iso">ISO 19650</div>
+</header>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+
+    <div class="sidebar-section-header">General</div>
+    <div class="nav-item active" onclick="switchSection('proyectos')" id="nav-proyectos">
+      <div class="nav-icon">▤</div>Nombre de Proyectos
+    </div>
+    <div class="nav-item" onclick="switchSection('archivos')" id="nav-archivos">
+      <div class="nav-icon">▣</div>Nombre de Archivos
+    </div>
+    <div class="nav-item" onclick="switchSection('familias-elem')" id="nav-familias-elem">
+      <div class="nav-icon">◈</div>Familias / Elementos
+    </div>
+    <div class="nav-item" onclick="switchSection('num-planos')" id="nav-num-planos">
+      <div class="nav-icon">▦</div>Número de Planos
+    </div>
+
+    <div class="sidebar-section-header">Revit</div>
+    <div class="nav-item" onclick="switchSection('subproyectos')" id="nav-subproyectos">
+      <div class="nav-icon">◫</div>Subproyectos
+    </div>
+    <div class="nav-item" onclick="switchSection('niveles')" id="nav-niveles">
+      <div class="nav-icon">≡</div>Niveles
+    </div>
+    <div class="nav-item" onclick="switchSection('vistas')" id="nav-vistas">
+      <div class="nav-icon">◉</div>Vistas
+    </div>
+    <div class="nav-item" onclick="switchSection('plantillas-vistas')" id="nav-plantillas-vistas">
+      <div class="nav-icon">◧</div>Plantillas de Vistas
+    </div>
+    <div class="nav-item" onclick="switchSection('filtros-vistas')" id="nav-filtros-vistas">
+      <div class="nav-icon">▽</div>Filtros de Vistas
+    </div>
+    <div class="nav-item" onclick="switchSection('materiales')" id="nav-materiales">
+      <div class="nav-icon">⬡</div>Materiales
+    </div>
+    <div class="nav-item" onclick="switchSection('tablas')" id="nav-tablas">
+      <div class="nav-icon">⊞</div>Tablas
+    </div>
+    <div class="nav-item" onclick="switchSection('cajas-ref')" id="nav-cajas-ref">
+      <div class="nav-icon">⬜</div>Cajas de Referencia
+    </div>
+    <div class="nav-item" onclick="switchSection('planos-ref')" id="nav-planos-ref">
+      <div class="nav-icon">◎</div>Planos de Referencia
+    </div>
+    <div class="nav-item" onclick="switchSection('fases')" id="nav-fases">
+      <div class="nav-icon">▷</div>Fases
+    </div>
+    <div class="nav-item" onclick="switchSection('nombre-familias')" id="nav-nombre-familias">
+      <div class="nav-icon">⬡</div>Nombre de Familias
+    </div>
+
+    <div class="sidebar-section-header">Mediciones</div>
+    <div class="nav-item" onclick="switchSection('tabla-control')" id="nav-tabla-control">
+      <div class="nav-icon">⊡</div>Tablas Control Contenido
+    </div>
+    <div class="nav-item" onclick="switchSection('tabla-cuant')" id="nav-tabla-cuant">
+      <div class="nav-icon">⊟</div>Tablas Cuantificación
+    </div>
+
+    <div class="sidebar-section-header">TimeLiner</div>
+    <div class="nav-item" onclick="switchSection('planificacion')" id="nav-planificacion">
+      <div class="nav-icon">▶</div>Codificación Planificación
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- Result bar -->
+    <div class="result-bar">
+      <span class="result-label">Nombre</span>
+      <div class="result-name empty" id="result-display">— sin selección —</div>
+      <button class="btn-reset" onclick="resetForm()">↺ Limpiar</button>
+      <button class="btn-copy" id="copy-btn" onclick="copyResult()">COPIAR</button>
+    </div>
+
+    <!-- Tokens preview -->
+    <div class="tokens-bar" id="tokens-row"></div>
+
+    <!-- Content area -->
+    <div class="content-area">
+
+      <!-- ===== PROYECTOS ===== -->
+      <div class="generator-section active" id="sec-proyectos">
+        <div class="section-header">
+          <div class="section-tag">General</div>
+          <h2>Nombre de Proyectos</h2>
+          <p>CódigoProyecto _ País _ Provincia _ Descripción</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Código Proyecto <span class="req">*</span></label>
+            <input type="text" id="p-codigo-txt" placeholder="NNNNN (ej: 24001)" oninput="updateResult()">
+            <div class="code-chip" id="p-codigo-chip">—</div>
+          </div>
+          <div class="field">
+            <label>País <span class="req">*</span></label>
+            <select id="p-pais" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="p-pais-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Provincia</label>
+            <select id="p-provincia" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="p-provincia-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-400)">(auto-CamelCase: "edificio prim" → EdificioPrim)</span></label>
+            <input type="text" id="p-desc" placeholder="EdificioPrim" oninput="updateResult()">
+            <div class="code-chip" id="p-desc-chip">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ARCHIVOS ===== -->
+      <div class="generator-section" id="sec-archivos">
+        <div class="section-header">
+          <div class="section-tag">General</div>
+          <h2>Nombre de Archivos</h2>
+          <p>Proyecto - Creador - Volumen - Nivel - Tipo Documento - Disciplina - Secuencia - Descripción</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Código Proyecto <span class="req">*</span></label>
+            <input type="text" id="a-codigo-txt" placeholder="NNNNN" oninput="updateResult()">
+            <div class="code-chip" id="a-codigo-txt-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Creador <span class="req">*</span></label>
+            <select id="a-creador" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="a-creador-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Volumen / Sistema <span class="req">*</span></label>
+            <select id="a-sistema" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="a-sistema-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Nivel / Ubicación</label>
+            <select id="a-nivel" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="a-nivel-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Tipo Archivo <span class="req">*</span></label>
+            <select id="a-tipo" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="a-tipo-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Disciplina <span class="req">*</span></label>
+            <select id="a-disciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="a-disciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Secuencia numérica</label>
+            <select id="a-secuencia" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="a-secuencia-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-400)">(auto-CamelCase)</span></label>
+            <input type="text" id="a-desc" placeholder="ModeloPlantilla" oninput="updateResult()">
+            <div class="code-chip" id="a-desc-chip">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== FAMILIAS / ELEMENTOS ===== -->
+      <div class="generator-section" id="sec-familias-elem">
+        <div class="section-header">
+          <div class="section-tag">General</div>
+          <h2>Nombre de Familias / Elementos</h2>
+          <p>Creador _ Disciplina _ CategoríaRevit _ Descripción _ Dimensión</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Creador <span class="req">*</span></label>
+            <select id="fe-creador" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="fe-creador-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Disciplina <span class="req">*</span></label>
+            <select id="fe-disciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="fe-disciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Categoría Revit <span class="req">*</span></label>
+            <select id="fe-categoria" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="fe-categoria-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-400)">(auto-CamelCase)</span> <span class="req">*</span></label>
+            <input type="text" id="fe-desc" placeholder="Garage" oninput="updateResult()">
+            <div class="code-chip" id="fe-desc-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Dimensión / Altura <span style="font-weight:400;text-transform:none;letter-spacing:0">(si procede)</span></label>
+            <input type="text" id="fe-dim" placeholder="2,5mx2m" oninput="updateResult()">
+            <div class="code-chip" id="fe-dim-chip">—</div>
+          </div>
+          <div class="info-note">Ejemplo dimensión: A300xL300 · Ejemplo altura: H300 · Ejemplo nivel: +3000</div>
+        </div>
+      </div>
+
+      <!-- ===== NUMERO PLANOS ===== -->
+      <div class="generator-section" id="sec-num-planos">
+        <div class="section-header">
+          <div class="section-tag">General</div>
+          <h2>Número de Planos</h2>
+          <p>Disciplina _ Subdisciplina _ TipoVista+Número (pegados)</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Disciplina <span class="req">*</span></label>
+            <select id="np-disciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="np-disciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Subdisciplina</label>
+            <select id="np-subdisciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="np-subdisciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Tipo de Vista</label>
+            <select id="np-tipovista" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="np-tipovista-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Número de plano <span class="req">*</span></label>
+            <input type="text" id="np-num" placeholder="1001" oninput="updateResult()">
+            <div class="code-chip" id="np-num-chip">—</div>
+          </div>
+          <div class="info-note">Tipo de vista y número van pegados: SSA_XX_11001 (vista=1, número=1001)</div>
+        </div>
+      </div>
+
+      <!-- ===== SUBPROYECTOS ===== -->
+      <div class="generator-section" id="sec-subproyectos">
+        <div class="section-header">
+          <div class="section-tag">Revit</div>
+          <h2>Subproyectos</h2>
+          <p>Disciplina _ Subdisciplina _ Descripción</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Disciplina <span class="req">*</span></label>
+            <select id="sp-disciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="sp-disciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Subdisciplina</label>
+            <select id="sp-subdisciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="sp-subdisciplina-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-400)">(auto-CamelCase)</span> <span class="req">*</span></label>
+            <input type="text" id="sp-desc" placeholder="Cimentacion" oninput="updateResult()">
+            <div class="code-chip" id="sp-desc-chip">—</div>
+          </div>
+          <div class="info-note">Ejemplo: ARQ_ZZ_Cimentacion</div>
+        </div>
+      </div>
+
+      <!-- ===== NIVELES ===== -->
+      <div class="generator-section" id="sec-niveles">
+        <div class="section-header">
+          <div class="section-tag">Revit</div>
+          <h2>Niveles</h2>
+          <p>Disciplina _ Nivel → Dimensión/Altura (sin separador)</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Disciplina <span class="req">*</span></label>
+            <select id="nv-disciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="nv-disciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Nivel / Ubicación <span class="req">*</span></label>
+            <select id="nv-nivel" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="nv-nivel-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Dimensión / Altura <span style="font-weight:400;text-transform:none;letter-spacing:0">(ej: +0000)</span></label>
+            <input type="text" id="nv-dim" placeholder="+0000" oninput="updateResult()">
+            <div class="code-chip" id="nv-dim-chip">—</div>
+          </div>
+          <div class="info-note">Ejemplo: EST_P01+0000 · La cota se añade directamente al código de nivel sin guion bajo</div>
+        </div>
+      </div>
+
+      <!-- ===== VISTAS ===== -->
+      <div class="generator-section" id="sec-vistas">
+        <div class="section-header">
+          <div class="section-tag">Revit</div>
+          <h2>Vistas</h2>
+          <p>Disciplina _ Subdisciplina _ Nivel _ Descripción</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Disciplina <span class="req">*</span></label>
+            <select id="vi-disciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="vi-disciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Subdisciplina <span class="req">*</span></label>
+            <select id="vi-subdisciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="vi-subdisciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Nivel / Ubicación <span class="req">*</span></label>
+            <select id="vi-nivel" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="vi-nivel-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-400)">(auto-CamelCase)</span> <span class="req">*</span></label>
+            <input type="text" id="vi-desc" placeholder="Extincion" oninput="updateResult()">
+            <div class="code-chip" id="vi-desc-chip">—</div>
+          </div>
+          <div class="info-note">Ejemplo: MEP_ST_S03_Extincion</div>
+        </div>
+      </div>
+
+      <!-- ===== PLANTILLAS VISTAS ===== -->
+      <div class="generator-section" id="sec-plantillas-vistas">
+        <div class="section-header">
+          <div class="section-tag">Revit</div>
+          <h2>Plantillas de Vistas</h2>
+          <p>Disciplina _ Subdisciplina _ Descripción</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Disciplina <span class="req">*</span></label>
+            <select id="pv-disciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="pv-disciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Subdisciplina</label>
+            <select id="pv-subdisciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="pv-subdisciplina-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-400)">(auto-CamelCase)</span> <span class="req">*</span></label>
+            <input type="text" id="pv-desc" placeholder="AguaCaliente" oninput="updateResult()">
+            <div class="code-chip" id="pv-desc-chip">—</div>
+          </div>
+          <div class="info-note">Ejemplo: ARQ_LO_AguaCaliente</div>
+        </div>
+      </div>
+
+      <!-- ===== FILTROS VISTAS ===== -->
+      <div class="generator-section" id="sec-filtros-vistas">
+        <div class="section-header">
+          <div class="section-tag">Revit</div>
+          <h2>Filtros de Vistas</h2>
+          <p>Disciplina _ CategoríaRevit _ Campo _ Operador _ Descripción</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Disciplina <span class="req">*</span></label>
+            <select id="fv-disciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="fv-disciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Categoría Revit <span class="req">*</span></label>
+            <select id="fv-categoria" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="fv-categoria-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Campo <span class="req">*</span></label>
+            <select id="fv-campo" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="fv-campo-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Operador <span class="req">*</span></label>
+            <select id="fv-operador" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="fv-operador-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-400)">(auto-CamelCase)</span> <span class="req">*</span></label>
+            <input type="text" id="fv-desc" placeholder="AguaCaliente" oninput="updateResult()">
+            <div class="code-chip" id="fv-desc-chip">—</div>
+          </div>
+          <div class="info-note">Ejemplo: ARQ_DOR_NTip_NE_AguaCaliente</div>
+        </div>
+      </div>
+
+      <!-- ===== MATERIALES ===== -->
+      <div class="generator-section" id="sec-materiales">
+        <div class="section-header">
+          <div class="section-tag">Revit</div>
+          <h2>Materiales</h2>
+          <p>Creador _ Disciplina _ Descripción _ Dimensión</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Creador <span class="req">*</span></label>
+            <select id="mat-creador" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="mat-creador-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Disciplina <span class="req">*</span></label>
+            <select id="mat-disciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="mat-disciplina-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-400)">(auto-CamelCase)</span> <span class="req">*</span></label>
+            <input type="text" id="mat-desc" placeholder="BaldosaPiedra" oninput="updateResult()">
+            <div class="code-chip" id="mat-desc-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Dimensión / Altura <span style="font-weight:400;text-transform:none;letter-spacing:0">(si procede)</span></label>
+            <input type="text" id="mat-dim" placeholder="A300L300" oninput="updateResult()">
+            <div class="code-chip" id="mat-dim-chip">—</div>
+          </div>
+          <div class="info-note">Ejemplo: BEC_EST_BaldosaPiedra_A300L300</div>
+        </div>
+      </div>
+
+      <!-- ===== TABLAS ===== -->
+      <div class="generator-section" id="sec-tablas">
+        <div class="section-header">
+          <div class="section-tag">Revit</div>
+          <h2>Tablas</h2>
+          <p>Disciplina _ CategoríaRevit _ Descripción</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Disciplina <span class="req">*</span></label>
+            <select id="tab-disciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="tab-disciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Categoría Revit <span class="req">*</span></label>
+            <select id="tab-categoria" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="tab-categoria-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-400)">(auto-CamelCase)</span> <span class="req">*</span></label>
+            <input type="text" id="tab-desc" placeholder="Puertas" oninput="updateResult()">
+            <div class="code-chip" id="tab-desc-chip">—</div>
+          </div>
+          <div class="info-note">Ejemplo: ARQ_DOR_Puertas</div>
+        </div>
+      </div>
+
+      <!-- ===== CAJAS REFERENCIA ===== -->
+      <div class="generator-section" id="sec-cajas-ref">
+        <div class="section-header">
+          <div class="section-tag">Revit</div>
+          <h2>Cajas de Referencia</h2>
+          <p>Disciplina _ Descripción</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Disciplina <span class="req">*</span></label>
+            <select id="cr-disciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="cr-disciplina-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-400)">(auto-CamelCase)</span> <span class="req">*</span></label>
+            <input type="text" id="cr-desc" placeholder="LocalA" oninput="updateResult()">
+            <div class="code-chip" id="cr-desc-chip">—</div>
+          </div>
+          <div class="info-note">Ejemplo: ARQ_LocalA</div>
+        </div>
+      </div>
+
+      <!-- ===== PLANOS REFERENCIA ===== -->
+      <div class="generator-section" id="sec-planos-ref">
+        <div class="section-header">
+          <div class="section-tag">Revit</div>
+          <h2>Planos de Referencia</h2>
+          <p>Disciplina _ Nivel _ Descripción</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Disciplina <span class="req">*</span></label>
+            <select id="pr-disciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="pr-disciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Nivel / Ubicación <span class="req">*</span></label>
+            <select id="pr-nivel" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="pr-nivel-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0">(descripción + altura)</span></label>
+            <input type="text" id="pr-desc" placeholder="FT_2,8m" oninput="updateResult()">
+            <div class="code-chip" id="pr-desc-chip">—</div>
+          </div>
+          <div class="info-note">Ejemplo: ARQ_P01_FT_2,8m</div>
+        </div>
+      </div>
+
+      <!-- ===== FASES ===== -->
+      <div class="generator-section" id="sec-fases">
+        <div class="section-header">
+          <div class="section-tag">Revit</div>
+          <h2>Fases</h2>
+          <p>Volumen/Sistema _ Secuencia</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Volumen / Sistema <span class="req">*</span></label>
+            <select id="fa-sistema" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="fa-sistema-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Secuencia numérica <span class="req">*</span></label>
+            <select id="fa-secuencia" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="fa-secuencia-chip">—</div>
+          </div>
+          <div class="info-note">Ejemplo: NC_001</div>
+        </div>
+      </div>
+
+      <!-- ===== NOMBRE FAMILIAS ===== -->
+      <div class="generator-section" id="sec-nombre-familias">
+        <div class="section-header">
+          <div class="section-tag">Revit</div>
+          <h2>Nombre de Familias</h2>
+          <p>Creador _ Disciplina _ CategoríaRevit _ Descripción _ Dimensión</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Creador <span class="req">*</span></label>
+            <select id="nf-creador" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="nf-creador-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Disciplina <span class="req">*</span></label>
+            <select id="nf-disciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="nf-disciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Categoría Revit <span class="req">*</span></label>
+            <select id="nf-categoria" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="nf-categoria-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-400)">(auto-CamelCase)</span> <span class="req">*</span></label>
+            <input type="text" id="nf-desc" placeholder="Puerta1Hoja" oninput="updateResult()">
+            <div class="code-chip" id="nf-desc-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Dimensión / Altura <span style="font-weight:400;text-transform:none;letter-spacing:0">(si procede)</span></label>
+            <input type="text" id="nf-dim" placeholder="210x300" oninput="updateResult()">
+            <div class="code-chip" id="nf-dim-chip">—</div>
+          </div>
+          <div class="info-note">Ejemplo: BEC_EST_SFO_Puerta1Hoja_210x300</div>
+        </div>
+      </div>
+
+      <!-- ===== TABLA CONTROL ===== -->
+      <div class="generator-section" id="sec-tabla-control">
+        <div class="section-header">
+          <div class="section-tag">Mediciones</div>
+          <h2>Tablas Control Contenido o Planos</h2>
+          <p>Disciplina _ CategoríaCód _ CategoríaDesc _ Descripción</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Disciplina <span class="req">*</span></label>
+            <select id="tc-disciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="tc-disciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Categoría Revit <span class="req">*</span></label>
+            <select id="tc-categoria" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="tc-categoria-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-400)">(auto-CamelCase)</span> <span class="req">*</span></label>
+            <input type="text" id="tc-desc" placeholder="Puertas" oninput="updateResult()">
+            <div class="code-chip" id="tc-desc-chip">—</div>
+          </div>
+          <div class="info-note">Ejemplo: ARQ_DOR_Puertas_Abatibles</div>
+        </div>
+      </div>
+
+      <!-- ===== TABLA CUANTIFICACION ===== -->
+      <div class="generator-section" id="sec-tabla-cuant">
+        <div class="section-header">
+          <div class="section-tag">Mediciones</div>
+          <h2>Tablas Cuantificación Mediciones</h2>
+          <p>BOQ (fijo) _ CategoríaCód _ CategoríaDesc _ Descripción</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Disciplina</label>
+            <div style="padding:9px 12px;background:var(--gray-100);border:1px solid var(--gray-200);border-radius:var(--radius);font-family:var(--mono);font-size:13px;font-weight:600;color:var(--orange-dark);display:flex;align-items:center;gap:8px;">
+              <span style="background:var(--orange-faint);border:1px solid var(--orange-border);padding:1px 8px;border-radius:3px;font-size:11px;">BOQ</span>
+              <span style="font-family:var(--sans);font-weight:500;color:var(--gray-500);font-size:13px;">Mediciones/Cuantificación</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Categoría Revit <span class="req">*</span></label>
+            <select id="tq-categoria" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="tq-categoria-chip">—</div>
+          </div>
+          <div class="field form-full">
+            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-400)">(auto-CamelCase)</span></label>
+            <input type="text" id="tq-desc" placeholder="Acabados" oninput="updateResult()">
+            <div class="code-chip" id="tq-desc-chip">—</div>
+          </div>
+          <div class="info-note">Disciplina siempre BOQ. Ejemplo: BOQ_FLO_Suelos_Acabados</div>
+        </div>
+      </div>
+
+      <!-- ===== PLANIFICACION ===== -->
+      <div class="generator-section" id="sec-planificacion">
+        <div class="section-header">
+          <div class="section-tag">TimeLiner</div>
+          <h2>Codificación Planificación</h2>
+          <p>Disciplina _ Subdisciplina _ CategoríaRevit _ Nivel _ Secuencia</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Disciplina <span class="req">*</span></label>
+            <select id="pl-disciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="pl-disciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Subdisciplina</label>
+            <select id="pl-subdisciplina" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="pl-subdisciplina-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Categoría Revit <span class="req">*</span></label>
+            <select id="pl-categoria" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="pl-categoria-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Nivel / Ubicación <span class="req">*</span></label>
+            <select id="pl-nivel" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="pl-nivel-chip">—</div>
+          </div>
+          <div class="field">
+            <label>Secuencia numérica <span class="req">*</span></label>
+            <select id="pl-secuencia" onchange="updateResult()"><option value="">— Selecciona —</option></select>
+            <div class="code-chip" id="pl-secuencia-chip">—</div>
+          </div>
+          <div class="info-note">Ejemplo: ARQ_ZZ_WAL_P01_001</div>
+        </div>
+      </div>
+
+    </div><!-- /content-area -->
+  </main>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+//  DATA TABLES (BECSA)
+// ─────────────────────────────────────────────
+const T = {
+  Pais: [{"code":"XX","desc":"Sin Especificación de país"},{"code":"ZZ","desc":"Múltiples países"},{"code":"ES","desc":"España"}],
+Provincia: [{"code":"XXX","desc":"Si especificación de provincia"},{"code":"ZZZ","desc":"Múltiples provincias"},{"code":"ALA","desc":"Álava"},{"code":"ALB","desc":"Albacete"},{"code":"ALC","desc":"Alicante"},{"code":"ALM","desc":"Almería"},{"code":"AST","desc":"Asturias"},{"code":"AVI","desc":"Ávila"},{"code":"BAD","desc":"Badajoz"},{"code":"BCN","desc":"Barcelona"},{"code":"BUR","desc":"Burgos"},{"code":"CAC","desc":"Cáceres"},{"code":"CAD","desc":"Cádiz"},{"code":"CTB","desc":"Cantabria"},{"code":"CAS","desc":"Castellón"},{"code":"CDR","desc":"Ciudad Real"},{"code":"CRD","desc":"Córdoba"},{"code":"CUE","desc":"Cuenca"},{"code":"GIR","desc":"Girona"},{"code":"GRA","desc":"Granada"},{"code":"GDL","desc":"Guadalajara"},{"code":"GUI","desc":"Guipúzcoa"},{"code":"HUE","desc":"Huelva"},{"code":"HSC","desc":"Huesca"},{"code":"BAL","desc":"Islas Baleares"},{"code":"JAE","desc":"Jaén"},{"code":"ACO","desc":"La Coruña"},{"code":"LRJ","desc":"La Rioja"},{"code":"LPM","desc":"Las Palmas"},{"code":"LEO","desc":"León"},{"code":"LLE","desc":"Lleida"},{"code":"LUG","desc":"Lugo"},{"code":"MAD","desc":"Madrid"},{"code":"MAL","desc":"Málaga"},{"code":"MUR","desc":"Murcia"},{"code":"NAV","desc":"Navarra"},{"code":"ORE","desc":"Ourense"},{"code":"PAL","desc":"Palencia"},{"code":"PON","desc":"Pontevedra"},{"code":"SAL","desc":"Salamanca"},{"code":"SCT","desc":"Santa Cruz de Tenerife"},{"code":"SEG","desc":"Segovia"},{"code":"SEV","desc":"Sevilla"},{"code":"SOR","desc":"Soria"},{"code":"TAR","desc":"Tarragona"},{"code":"TER","desc":"Teruel"},{"code":"TOL","desc":"Toledo"},{"code":"VAL","desc":"Valencia"},{"code":"VLL","desc":"Valladolid"},{"code":"VIZ","desc":"Vizcaya"},{"code":"ZAM","desc":"Zamora"},{"code":"ZAR","desc":"Zaragoza"}],
+  Creador: [{"code":"XXX","desc":"Sin Especificación creador"},{"code":"BEC","desc":"BECSA"},{"code":"IND","desc":"Indertec"},{"code":"DUR","desc":"Durantia"},{"code":"SIM","desc":"Simetría"},{"code":"ADP","desc":"Área Desarrollo"},{"code":"EXT","desc":"Externo"},{"code":"CLI","desc":"Cliente"}],
+  Sistema: [{"code":"XX","desc":"Sin Especificación del sistema"},{"code":"ZZ","desc":"Múltiples sistemas"},{"code":"NC","desc":"Nueva construcción"},{"code":"CE","desc":"Construcción existente"},{"code":"PB","desc":"Proyecto básico"},{"code":"PE","desc":"Proyecto ejecución"},{"code":"CO","desc":"Proyecto construcción"},{"code":"AN","desc":"Anteproyecto"},{"code":"DM","desc":"Demolición"},{"code":"AA","desc":"Actividad / Ambiental"},{"code":"SS","desc":"Seguridad y Salud"},{"code":"EA","desc":"Estado Actual"},{"code":"EP","desc":"Estado previo/anterior"},{"code":"ER","desc":"Estado Reformado"},{"code":"OB","desc":"Obra"},{"code":"ZA","desc":"Zona A"},{"code":"ZB","desc":"Zona B"},{"code":"ZC","desc":"Zona C"}],
+  TipoArchivo: [{"code":"XXX","desc":"Sin Especificación del tipo"},{"code":"ZZZ","desc":"Otro tipo documento"},{"code":"YYY","desc":"Varios tipos"},{"code":"AF","desc":"Infografías o modelo animado"},{"code":"BOQ","desc":"Presupuestos"},{"code":"DOC","desc":"Documento"},{"code":"CAU","desc":"Cálculos"},{"code":"PLC","desc":"Plan de coste"},{"code":"DIT","desc":"Detección interferencias"},{"code":"DBB","desc":"Base de datos"},{"code":"DRW","desc":"Representación del dibujo"},{"code":"FN","desc":"Archivo de notas"},{"code":"IIN","desc":"Intercambio de información"},{"code":"M2D","desc":"Modelo 2D"},{"code":"M3D","desc":"Modelo 3D"},{"code":"MED","desc":"Mediciones"},{"code":"PRS","desc":"Presentación"},{"code":"PRG","desc":"Programación"},{"code":"RFI","desc":"Solicitud de información"},{"code":"RPO","desc":"Reportes"},{"code":"TPA","desc":"Tabla de planificación"},{"code":"SPE","desc":"Especificaciones"},{"code":"SUR","desc":"Encuesta"},{"code":"NPU","desc":"Nube de puntos"},{"code":"VIS","desc":"Visualización"},{"code":"CAL","desc":"Control Calidad"},{"code":"PLN","desc":"Planificación"},{"code":"ACT","desc":"Acta"},{"code":"AIM","desc":"Modelo para mantenimiento (Asset Information Model)"},{"code":"AIR","desc":"Requisitos de información del activo (Asset Information Requirement)"},{"code":"BEP","desc":"Plan de ejecución BIM"},{"code":"EIR","desc":"Requisitos de intercambio de información (Exchange Information Requirements)"},{"code":"OBJ","desc":"Objeto"},{"code":"OIR","desc":"Requisitos de información de la organización (Organizational Information Requirements)"},{"code":"PGS","desc":"Plan de gestión de la seguridad de la información"},{"code":"ANE","desc":"Anejo"},{"code":"NOR","desc":"Norma"}],
+  Disciplina: [{"code":"XXX","desc":"Sin Especificación de la disciplina"},{"code":"YYY","desc":"Múltiples disciplinas"},{"code":"ZZZ","desc":"Sin Disciplina"},{"code":"ARQ","desc":"Arquitectura"},{"code":"TGS","desc":"Topografía"},{"code":"ICI","desc":"Civil"},{"code":"DAT","desc":"Datum"},{"code":"AIM","desc":"Mantenimiento"},{"code":"GEO","desc":"Geotécnico"},{"code":"INT","desc":"Diseño interior"},{"code":"ARP","desc":"Arquitectura exterior (paisajismo)"},{"code":"MEP","desc":"Instalaciones"},{"code":"COR","desc":"Replanteo"},{"code":"EST","desc":"Estructura"},{"code":"URB","desc":"Urbanización"},{"code":"IND","desc":"Elementos industrializados"},{"code":"CAL","desc":"CALIDAD"},{"code":"MAR","desc":"GESTION DE RESIDUOS"},{"code":"SSA","desc":"SEGURIDAD Y SALUD"},{"code":"MAM","desc":"Medio Ambiente"},{"code":"BOQ","desc":"Mediciones/Cuantificación"}],
+  Subdisciplina: [{"code":"XX","desc":"Sin subdisciplinas"},{"code":"ZZ","desc":"Múltiples subdisciplinas"},{"code":"LO","desc":"Localización"},{"code":"AC","desc":"Accesibilidad"},{"code":"3D","desc":"Perspectiva"},{"code":"DT","desc":"Detalles"},{"code":"EQ","desc":"Esquemas/Leyendas"},{"code":"PL","desc":"Plantas"},{"code":"AR","desc":"Areas"},{"code":"EV","desc":"Evacuación/ sectorizacion de incendios"},{"code":"SN","desc":"Señalitica"},{"code":"SI","desc":"Superficies Habitaciones"},{"code":"SA","desc":"Superficies Áreas"},{"code":"SC","desc":"Superficies Construidas"},{"code":"SO","desc":"Superficies Ocupación"},{"code":"SE","desc":"Secciones"},{"code":"AS","desc":"Montaje"},{"code":"ST","desc":"Pluviales"},{"code":"SM","desc":"Suministro (Acometidas)"},{"code":"LI","desc":"Iluminación"},{"code":"PW","desc":"Power"},{"code":"VD","desc":"Voz y datos"},{"code":"ED","desc":"Extincion/Detección de incendios"},{"code":"IN","desc":"Incendios"},{"code":"DA","desc":"DESMONTAJES Y DEMOLICIONES"},{"code":"MT","desc":"EXCAVACIONES Y RELLENOS"},{"code":"EH","desc":"ESTRUCTURA HORMIGON"},{"code":"MP","desc":"CONTENCIONES/CIMENTACION"},{"code":"EM","desc":"ESTRUCTURA MADERA"},{"code":"ET","desc":"ESTRUCTURA METÁLICA"},{"code":"FA","desc":"FACHADA"},{"code":"AL","desc":"ALBAÑILERIA"},{"code":"CU","desc":"CUBIERTAS E IMPERMEABILIZACION"},{"code":"CR","desc":"CARPINTERIA EXTERIOR"},{"code":"TE","desc":"TABIQUERIA Y FT"},{"code":"IR","desc":"CERRAJERIA"},{"code":"KI","desc":"COCINAS"},{"code":"SG","desc":"APARATOS SANITARIOS"},{"code":"IM","desc":"AISLAMIENTOS Y SELLADOS"},{"code":"CI","desc":"CARPINTERIA INTERIOR"},{"code":"PM","desc":"PUERTAS METALICAS"},{"code":"EU","desc":"EQUIPAMIENTO"},{"code":"RV","desc":"REVESTIMIENTOS INTERIORES"},{"code":"SW","desc":"SANEAMIENTO"},{"code":"FO","desc":"FONTANERÍA"},{"code":"AO","desc":"AEROTERMIA"},{"code":"HV","desc":"CLIMATIZACIÓN"},{"code":"GA","desc":"GAS/Gasoil"},{"code":"VE","desc":"VENTILACIÓN"},{"code":"PI","desc":"PCI"},{"code":"EL","desc":"ELECTRICIDAD"},{"code":"TL","desc":"TELECOMUNICACIONES"},{"code":"EF","desc":"ENERGIA FOTOVOLTAICA"},{"code":"AE","desc":"ASCENSOR"},{"code":"PT","desc":"PREPARACION TERRENO"},{"code":"UB","desc":"URBANIZACIÓN (OBRA CIVIL E INSTALACIONES)"},{"code":"UR","desc":"URBANIZACIÓN (EQUIPAMIENTO)"},{"code":"AB","desc":"ACABADOS"},{"code":"BA","desc":"BAÑOS"},{"code":"ES","desc":"ESCALERAS"},{"code":"BL","desc":"BALCONES"},{"code":"MI","desc":"MO indirecta (gestión)"},{"code":"MO","desc":"MO directa (trabajo ejecución)"},{"code":"GO","desc":"Gastos de obra"},{"code":"PV","desc":"Postventa/repasos"},{"code":"YY","desc":"Licencias, tasas municipales, seguros, financieros y avales."},{"code":"PD","desc":"DRENAJES E IMPERMEABILIZACION"},{"code":"PF","desc":"FERRALLA, simples"},{"code":"PH","desc":"HORMIGON simples"},{"code":"PZ","desc":"MATERIAL CONSTRUCCION simples"},{"code":"PG","desc":"SANITARIOS Y GRIFERIAS simples"},{"code":"NO","desc":"Normativa"}],
+  Nivel: [{"code":"XXX","desc":"Sin Especificación del nivel"},{"code":"ZZZ","desc":"Todos los niveles"},{"code":"P00","desc":"Planta Baja"},{"code":"P01","desc":"Planta 01"},{"code":"P02","desc":"Planta 02"},{"code":"P03","desc":"Planta 03"},{"code":"P04","desc":"Planta 04"},{"code":"P05","desc":"Planta 05"},{"code":"P06","desc":"Planta 06"},{"code":"P07","desc":"Planta 07"},{"code":"CUB","desc":"Cubierta"},{"code":"E01","desc":"Entresuelo 1"},{"code":"E02","desc":"Entresuelo 2"},{"code":"S01","desc":"Sótano 1"},{"code":"S02","desc":"Sótano 2"},{"code":"S03","desc":"Sótano 3"},{"code":"CU1","desc":"Cubierta 1"},{"code":"CU2","desc":"Cubierta 2"},{"code":"BRA","desc":"Bajo Rasante"},{"code":"SRA","desc":"Sobre Rasante"},{"code":"CIM","desc":"Cimentación"},{"code":"CLL","desc":"Planta Calle"}],
+  TipoVista: [{"code":"0","desc":"Vistas generales o leyendas y tablas"},{"code":"1","desc":"Vistas corte horizontal"},{"code":"2","desc":"Secciones o alzados"},{"code":"3","desc":"Vistas 3D"},{"code":"4","desc":"Detalles"},{"code":"5","desc":"Esquemas"}],
+  Secuencia: [{"code":"001","desc":"Archivo/ Ejemplar 1"},{"code":"002","desc":"Archivo/ Ejemplar 2"},{"code":"003","desc":"Archivo/ Ejemplar 3"},{"code":"004","desc":"Archivo/ Ejemplar 4"},{"code":"005","desc":"Archivo/ Ejemplar 5"},{"code":"006","desc":"Archivo/ Ejemplar 6"},{"code":"007","desc":"Archivo/ Ejemplar 7"},{"code":"008","desc":"Archivo/ Ejemplar 8"},{"code":"009","desc":"Archivo/ Ejemplar 9"},{"code":"010","desc":"Archivo/ Ejemplar 10"},{"code":"011","desc":"Archivo/ Ejemplar 11"},{"code":"012","desc":"Archivo/ Ejemplar 12"},{"code":"013","desc":"Archivo/ Ejemplar 13"},{"code":"014","desc":"Archivo/ Ejemplar 14"},{"code":"015","desc":"Archivo/ Ejemplar 15"},{"code":"016","desc":"Archivo/ Ejemplar 16"},{"code":"017","desc":"Archivo/ Ejemplar 17"},{"code":"018","desc":"Archivo/ Ejemplar 18"},{"code":"019","desc":"Archivo/ Ejemplar 19"},{"code":"020","desc":"Archivo/ Ejemplar 20"},{"code":"021","desc":"Archivo/ Ejemplar 21"},{"code":"022","desc":"Archivo/ Ejemplar 22"},{"code":"023","desc":"Archivo/ Ejemplar 23"},{"code":"024","desc":"Archivo/ Ejemplar 24"},{"code":"025","desc":"Archivo/ Ejemplar 25"},{"code":"026","desc":"Archivo/ Ejemplar 26"},{"code":"027","desc":"Archivo/ Ejemplar 27"},{"code":"028","desc":"Archivo/ Ejemplar 28"},{"code":"029","desc":"Archivo/ Ejemplar 29"},{"code":"030","desc":"Archivo/ Ejemplar 30"},{"code":"031","desc":"Archivo/ Ejemplar 31"},{"code":"032","desc":"Archivo/ Ejemplar 32"},{"code":"033","desc":"Archivo/ Ejemplar 33"},{"code":"034","desc":"Archivo/ Ejemplar 34"},{"code":"035","desc":"Archivo/ Ejemplar 35"},{"code":"036","desc":"Archivo/ Ejemplar 36"},{"code":"037","desc":"Archivo/ Ejemplar 37"},{"code":"038","desc":"Archivo/ Ejemplar 38"},{"code":"039","desc":"Archivo/ Ejemplar 39"},{"code":"040","desc":"Archivo/ Ejemplar 40"},{"code":"041","desc":"Archivo/ Ejemplar 41"},{"code":"042","desc":"Archivo/ Ejemplar 42"},{"code":"043","desc":"Archivo/ Ejemplar 43"},{"code":"044","desc":"Archivo/ Ejemplar 44"},{"code":"045","desc":"Archivo/ Ejemplar 45"},{"code":"046","desc":"Archivo/ Ejemplar 46"},{"code":"047","desc":"Archivo/ Ejemplar 47"},{"code":"048","desc":"Archivo/ Ejemplar 48"},{"code":"049","desc":"Archivo/ Ejemplar 49"},{"code":"050","desc":"Archivo/ Ejemplar 50"},{"code":"051","desc":"Archivo/ Ejemplar 51"},{"code":"052","desc":"Archivo/ Ejemplar 52"},{"code":"053","desc":"Archivo/ Ejemplar 53"},{"code":"054","desc":"Archivo/ Ejemplar 54"},{"code":"055","desc":"Archivo/ Ejemplar 55"},{"code":"056","desc":"Archivo/ Ejemplar 56"},{"code":"057","desc":"Archivo/ Ejemplar 57"},{"code":"058","desc":"Archivo/ Ejemplar 58"},{"code":"059","desc":"Archivo/ Ejemplar 59"},{"code":"060","desc":"Archivo/ Ejemplar 60"},{"code":"061","desc":"Archivo/ Ejemplar 61"},{"code":"062","desc":"Archivo/ Ejemplar 62"},{"code":"063","desc":"Archivo/ Ejemplar 63"},{"code":"064","desc":"Archivo/ Ejemplar 64"},{"code":"065","desc":"Archivo/ Ejemplar 65"},{"code":"066","desc":"Archivo/ Ejemplar 66"},{"code":"067","desc":"Archivo/ Ejemplar 67"},{"code":"068","desc":"Archivo/ Ejemplar 68"},{"code":"069","desc":"Archivo/ Ejemplar 69"},{"code":"070","desc":"Archivo/ Ejemplar 70"},{"code":"071","desc":"Archivo/ Ejemplar 71"},{"code":"072","desc":"Archivo/ Ejemplar 72"},{"code":"073","desc":"Archivo/ Ejemplar 73"},{"code":"074","desc":"Archivo/ Ejemplar 74"},{"code":"075","desc":"Archivo/ Ejemplar 75"},{"code":"076","desc":"Archivo/ Ejemplar 76"},{"code":"077","desc":"Archivo/ Ejemplar 77"},{"code":"078","desc":"Archivo/ Ejemplar 78"},{"code":"079","desc":"Archivo/ Ejemplar 79"},{"code":"080","desc":"Archivo/ Ejemplar 80"},{"code":"081","desc":"Archivo/ Ejemplar 81"},{"code":"082","desc":"Archivo/ Ejemplar 82"},{"code":"083","desc":"Archivo/ Ejemplar 83"},{"code":"084","desc":"Archivo/ Ejemplar 84"},{"code":"085","desc":"Archivo/ Ejemplar 85"},{"code":"086","desc":"Archivo/ Ejemplar 86"},{"code":"087","desc":"Archivo/ Ejemplar 87"},{"code":"088","desc":"Archivo/ Ejemplar 88"},{"code":"089","desc":"Archivo/ Ejemplar 89"},{"code":"090","desc":"Archivo/ Ejemplar 90"},{"code":"091","desc":"Archivo/ Ejemplar 91"},{"code":"092","desc":"Archivo/ Ejemplar 92"},{"code":"093","desc":"Archivo/ Ejemplar 93"},{"code":"094","desc":"Archivo/ Ejemplar 94"},{"code":"095","desc":"Archivo/ Ejemplar 95"},{"code":"096","desc":"Archivo/ Ejemplar 96"},{"code":"097","desc":"Archivo/ Ejemplar 97"},{"code":"098","desc":"Archivo/ Ejemplar 98"},{"code":"099","desc":"Archivo/ Ejemplar 99"}],
+  Categoria: [{"code":"SCO","desc":"Structural Columns / Pilares estructurales"},{"code":"SCN","desc":"Structural Connections / Conexiones estructurales"},{"code":"SFO","desc":"Structural Foundations / Cimentación estructural"},{"code":"SFR","desc":"Structural Framing / Armazon estructural (Vigas)"},{"code":"SER","desc":"Structural Rebar / Armadura estructural"},{"code":"SRC","desc":"Structural Rebar Couplers / Acopladores de armadura estructural"},{"code":"STS","desc":"Structural Stiffeners / Refuerzos de area estructural"},{"code":"STR","desc":"Structural Trusses / Estructuras de cerchas"},{"code":"CSW","desc":"Casework / Carpinteria"},{"code":"CEI","desc":"Ceilings / Techos"},{"code":"COL","desc":"Columns / Pilares"},{"code":"CUP","desc":"Curtain Panels / Panel cortina"},{"code":"CUS","desc":"Curtain Systems / Paneles de muro cortina"},{"code":"CUW","desc":"Cuartain Wall Mullions / Montantes de muro cortina"},{"code":"DOR","desc":"Doors / Puertas"},{"code":"FLO","desc":"Floors / Suelos"},{"code":"FSE","desc":"Food Service Equipment / Equipo de servicios alimentarios"},{"code":"FUR","desc":"Furniture / Mobiliario"},{"code":"FSY","desc":"Furniture Systems / Sistemas de mobiliario"},{"code":"GRI","desc":"Grids / Ejes"},{"code":"MAS","desc":"Mass / Masa"},{"code":"MOD","desc":"Generic Models / Modelos genericos"},{"code":"MED","desc":"Medical Equipment / Equipo medico"},{"code":"PAR","desc":"Parking / Aparcamiento"},{"code":"PLA","desc":"Planting / Vegetacion"},{"code":"PLU","desc":"Plumbing Fixtures / Aparatos sanitarios"},{"code":"RAL","desc":"Railings / Barandillas"},{"code":"RAM","desc":"Ramps / Rampas"},{"code":"ROA","desc":"Roads / Carreteras"},{"code":"ROF","desc":"Roofs / Cubiertas"},{"code":"SEQ","desc":"Speciality Equipment / Equipos especializados"},{"code":"SIT","desc":"Site-Pads"},{"code":"STA","desc":"Stairs / Escaleras"},{"code":"TOP","desc":"Topography / Topografia"},{"code":"WAL","desc":"Walls / Muros"},{"code":"WIN","desc":"Windows / Ventanas"},{"code":"ATE","desc":"Air Terminals / Terminales de aire"},{"code":"AVD","desc":"Audio Visual Devices / Dispositivos audiovisuales"},{"code":"CAF","desc":"Cable Tray Fittings / Uniones de bandejas de cables"},{"code":"CAR","desc":"Cable Tray Runs"},{"code":"CAT","desc":"Cable Tray / Bandejas de cables"},{"code":"CDE","desc":"Communication Devices / Dispositivos de comunicación"},{"code":"COF","desc":"Conduits Fittings / Uniones  de tubo"},{"code":"CON","desc":"Conduits / Tubos"},{"code":"DAT","desc":"Data Devices / Dispositivos de datos"},{"code":"DUA","desc":"Duct Accessories / Accesorios de conductos"},{"code":"DUF","desc":"Duct Fittings / Uniones de conducto"},{"code":"DUI","desc":"Duct Insulation / Aislamiento de conducto"},{"code":"DUC","desc":"Ducts / conductos"},{"code":"EEQ","desc":"Electrical equipment / Equipos electricos"},{"code":"EFI","desc":"Electrical Fixtures / Aparatos electricos"},{"code":"FAL","desc":"Fire Alarm Devices / Dispositivos de alarma de incendios"},{"code":"FIP","desc":"Fire Protection / Protección contra incendios"},{"code":"FDU","desc":"Flex Ducts / conductos flexibles"},{"code":"FPI","desc":"Flex Pipes / Tuberias flexibles"},{"code":"LID","desc":"Lighting Devices / Dispositivos de iluminacion"},{"code":"LIF","desc":"Lighting Fixtures / Luminarias"},{"code":"MCD","desc":"Mechanical Control Devices / Dispositivos de control mecanico"},{"code":"MEQ","desc":"Mechanical Equipment / Equipos mecanicos"},{"code":"PAC","desc":"Pipe Accessories / Accesorios de tuberias"},{"code":"PFI","desc":"Pipe Fittings / Uniones de tuberia"},{"code":"PIN","desc":"Pipe Insulation / Aislamiento de tuberia"},{"code":"PIP","desc":"Pipes / Tuberias"},{"code":"NCD","desc":"Nurse Call Devices / Dispositivos de enfermeria"},{"code":"PEQ","desc":"Plumbing Equipment / Equipo de fontaneria"},{"code":"SDE","desc":"Security Devices / Dispositivos de seguridad"},{"code":"SPR","desc":"Sprinklers / Rociadores"},{"code":"TEL","desc":"Telephone Devices / Dispositivos telefonicos"},{"code":"WIR","desc":"Wires / Cables"},{"code":"ANN","desc":"Anotation symbols"},{"code":"LEV","desc":"Levels / Niveles"},{"code":"DET","desc":"Detail Items"},{"code":"ZZZ","desc":"Múltiples categorías"},{"code":"WMI","desc":"Sin Informacion de modelado"}],
+  Campo: [{"code":"ZZZZ","desc":"Múltiples campos"},{"code":"NFam","desc":"Nombre de familia"},{"code":"NTip","desc":"Nombre de tipo"},{"code":"Mark","desc":"Marca"},{"code":"TMar","desc":"Tipo de marca"},{"code":"Diam","desc":"Diámetro"},{"code":"Comm","desc":"Comentarios"},{"code":"STyp","desc":"Tipo de sistema"},{"code":"TNam","desc":"Tipo de nombre"}],
+  Operador: [{"code":"EE","desc":"Igualdad"},{"code":"NE","desc":"No es igual"},{"code":"GT","desc":"Mayor que"},{"code":"GE","desc":"Mayor igual"},{"code":"LT","desc":"Menor que"},{"code":"LE","desc":"Menor igual"},{"code":"CV","desc":"Contiene"},{"code":"DC","desc":"No contiene"},{"code":"BW","desc":"Empieza por"},{"code":"FW","desc":"Finaliza por"},{"code":"NF","desc":"No finaliza por"},{"code":"TV","desc":"Tiene valor"},{"code":"NV","desc":"No tiene valor"}]
+};
+
+// ─────────────────────────────────────────────
+//  SECTION DEFINITIONS
+// ─────────────────────────────────────────────
+const SECTIONS = {
+  proyectos: {
+    selects: [],
+    texts: ['p-codigo-txt','p-desc'],
+    otherSelects: [['p-pais','Pais'],['p-provincia','Provincia']],
+    build: () => {
+      const cod = tv('p-codigo-txt'), pais = sv('p-pais'), prov = sv('p-provincia'), desc = dv('p-desc');
+      const parts = [cod,pais,prov].filter(Boolean);
+      if (desc) parts.push(desc);
+      return parts.join('_');
+    },
+    tokFn: () => {
+      const tks=[];
+      if(tv('p-codigo-txt')){tok(tks,tv('p-codigo-txt'),'code');sep(tks);}
+      if(sv('p-pais')){tok(tks,sv('p-pais'),'code');sep(tks);}
+      if(sv('p-provincia')){tok(tks,sv('p-provincia'),'code');sep(tks);}
+      if(dv('p-desc')){tok(tks,dv('p-desc'),'desc');}
+      trim(tks); return tks;
+    }
+  },
+  archivos: {
+    selects: [['a-creador','Creador'],['a-sistema','Sistema'],['a-nivel','Nivel'],['a-tipo','TipoArchivo'],['a-disciplina','Disciplina'],['a-secuencia','Secuencia']],
+    texts: ['a-codigo-txt','a-desc'],
+    build: () => {
+      const cod=tv('a-codigo-txt'),cr=sv('a-creador'),si=sv('a-sistema'),ni=sv('a-nivel'),ti=sv('a-tipo'),di=sv('a-disciplina'),se=sv('a-secuencia'),desc=dv('a-desc');
+      const parts=[cod,cr,si,ni,ti,di,se].filter(Boolean);
+      if(desc)parts.push(desc);
+      return parts.join('-');
+    },
+    tokFn: () => {
+      const tks=[];
+      const ids=[['a-codigo-txt','t'],['a-creador','s'],['a-sistema','s'],['a-nivel','s'],['a-tipo','s'],['a-disciplina','s'],['a-secuencia','s'],['a-desc','t']];
+      ids.forEach(([id,type])=>{
+        const val=type==='s'?sv(id):tv(id);
+        if(!val)return;
+        if(tks.length&&tks[tks.length-1].type!=='sep')tks.push({text:'-',type:'sep'});
+        tks.push({text:val,type:type==='t'?'desc':'code'});
+      });
+      trim(tks);return tks;
+    }
+  },
+  'familias-elem': {
+    selects: [['fe-creador','Creador'],['fe-disciplina','Disciplina'],['fe-categoria','Categoria']],
+    texts: ['fe-desc','fe-dim'],
+    build: () => {
+      const parts=[sv('fe-creador'),sv('fe-disciplina'),sv('fe-categoria')].filter(Boolean);
+      if(dv('fe-desc'))parts.push(dv('fe-desc'));
+      if(tv('fe-dim'))parts.push(tv('fe-dim'));
+      return parts.join('_');
+    },
+    tokFn: () => buildToks(['fe-creador|s','fe-disciplina|s','fe-categoria|s','fe-desc|t','fe-dim|d'])
+  },
+  'num-planos': {
+    selects: [['np-disciplina','Disciplina'],['np-subdisciplina','Subdisciplina'],['np-tipovista','TipoVista']],
+    texts: ['np-num'],
+    build: () => {
+      const parts=[sv('np-disciplina'),sv('np-subdisciplina')].filter(Boolean);
+      const vista=sv('np-tipovista'), num=tv('np-num');
+      // tipo de vista y número van pegados sin separador
+      const vistaNum=(vista||'')+(num||'');
+      if(vistaNum)parts.push(vistaNum);
+      return parts.join('_');
+    },
+    tokFn: () => {
+      const tks=[];
+      if(sv('np-disciplina')){tok(tks,sv('np-disciplina'),'code');sep(tks);}
+      if(sv('np-subdisciplina')){tok(tks,sv('np-subdisciplina'),'code');sep(tks);}
+      const vista=sv('np-tipovista'), num=tv('np-num');
+      const vistaNum=(vista||'')+(num||'');
+      if(vistaNum)tok(tks,vistaNum,'code');
+      trim(tks);return tks;
+    }
+  },
+  subproyectos: {
+    selects: [['sp-disciplina','Disciplina'],['sp-subdisciplina','Subdisciplina']],
+    texts: ['sp-desc'],
+    build: () => {
+      const parts=[sv('sp-disciplina'),sv('sp-subdisciplina')].filter(Boolean);
+      if(dv('sp-desc'))parts.push(dv('sp-desc'));
+      return parts.join('_');
+    },
+    tokFn: () => buildToks(['sp-disciplina|s','sp-subdisciplina|s','sp-desc|t'])
+  },
+  niveles: {
+    selects: [['nv-disciplina','Disciplina'],['nv-nivel','Nivel']],
+    texts: ['nv-dim'],
+    build: () => {
+      const d=sv('nv-disciplina'),n=sv('nv-nivel'),dim=tv('nv-dim');
+      let r=[d,n].filter(Boolean).join('_');
+      if(dim)r+=dim;
+      return r;
+    },
+    tokFn: () => {
+      const tks=[];
+      if(sv('nv-disciplina')){tok(tks,sv('nv-disciplina'),'code');sep(tks);}
+      if(sv('nv-nivel')){tok(tks,sv('nv-nivel'),'code');}
+      if(tv('nv-dim'))tok(tks,tv('nv-dim'),'dim');
+      return tks;
+    }
+  },
+  vistas: {
+    selects: [['vi-disciplina','Disciplina'],['vi-subdisciplina','Subdisciplina'],['vi-nivel','Nivel']],
+    texts: ['vi-desc'],
+    build: () => {
+      const parts=[sv('vi-disciplina'),sv('vi-subdisciplina'),sv('vi-nivel')].filter(Boolean);
+      if(dv('vi-desc'))parts.push(dv('vi-desc'));
+      return parts.join('_');
+    },
+    tokFn: () => buildToks(['vi-disciplina|s','vi-subdisciplina|s','vi-nivel|s','vi-desc|t'])
+  },
+  'plantillas-vistas': {
+    selects: [['pv-disciplina','Disciplina'],['pv-subdisciplina','Subdisciplina']],
+    texts: ['pv-desc'],
+    build: () => {
+      const parts=[sv('pv-disciplina'),sv('pv-subdisciplina')].filter(Boolean);
+      if(dv('pv-desc'))parts.push(dv('pv-desc'));
+      return parts.join('_');
+    },
+    tokFn: () => buildToks(['pv-disciplina|s','pv-subdisciplina|s','pv-desc|t'])
+  },
+  'filtros-vistas': {
+    selects: [['fv-disciplina','Disciplina'],['fv-categoria','Categoria'],['fv-campo','Campo'],['fv-operador','Operador']],
+    texts: ['fv-desc'],
+    build: () => {
+      const parts=[sv('fv-disciplina'),sv('fv-categoria'),sv('fv-campo'),sv('fv-operador')].filter(Boolean);
+      if(dv('fv-desc'))parts.push(dv('fv-desc'));
+      return parts.join('_');
+    },
+    tokFn: () => buildToks(['fv-disciplina|s','fv-categoria|s','fv-campo|s','fv-operador|s','fv-desc|t'])
+  },
+  materiales: {
+    selects: [['mat-creador','Creador'],['mat-disciplina','Disciplina']],
+    texts: ['mat-desc','mat-dim'],
+    build: () => {
+      const parts=[sv('mat-creador'),sv('mat-disciplina')].filter(Boolean);
+      if(dv('mat-desc'))parts.push(dv('mat-desc'));
+      if(tv('mat-dim'))parts.push(tv('mat-dim'));
+      return parts.join('_');
+    },
+    tokFn: () => buildToks(['mat-creador|s','mat-disciplina|s','mat-desc|t','mat-dim|d'])
+  },
+  tablas: {
+    selects: [['tab-disciplina','Disciplina'],['tab-categoria','Categoria']],
+    texts: ['tab-desc'],
+    build: () => {
+      const parts=[sv('tab-disciplina'),sv('tab-categoria')].filter(Boolean);
+      if(dv('tab-desc'))parts.push(dv('tab-desc'));
+      return parts.join('_');
+    },
+    tokFn: () => buildToks(['tab-disciplina|s','tab-categoria|s','tab-desc|t'])
+  },
+  'cajas-ref': {
+    selects: [['cr-disciplina','Disciplina']],
+    texts: ['cr-desc'],
+    build: () => {
+      const parts=[sv('cr-disciplina')].filter(Boolean);
+      if(dv('cr-desc'))parts.push(dv('cr-desc'));
+      return parts.join('_');
+    },
+    tokFn: () => buildToks(['cr-disciplina|s','cr-desc|t'])
+  },
+  'planos-ref': {
+    selects: [['pr-disciplina','Disciplina'],['pr-nivel','Nivel']],
+    texts: ['pr-desc'],
+    build: () => {
+      const parts=[sv('pr-disciplina'),sv('pr-nivel')].filter(Boolean);
+      if(tv('pr-desc'))parts.push(tv('pr-desc'));
+      return parts.join('_');
+    },
+    tokFn: () => buildToks(['pr-disciplina|s','pr-nivel|s','pr-desc|t'])
+  },
+  fases: {
+    selects: [['fa-sistema','Sistema'],['fa-secuencia','Secuencia']],
+    texts: [],
+    build: () => [sv('fa-sistema'),sv('fa-secuencia')].filter(Boolean).join('_'),
+    tokFn: () => buildToks(['fa-sistema|s','fa-secuencia|s'])
+  },
+  'nombre-familias': {
+    selects: [['nf-creador','Creador'],['nf-disciplina','Disciplina'],['nf-categoria','Categoria']],
+    texts: ['nf-desc','nf-dim'],
+    build: () => {
+      const parts=[sv('nf-creador'),sv('nf-disciplina'),sv('nf-categoria')].filter(Boolean);
+      if(dv('nf-desc'))parts.push(dv('nf-desc'));
+      if(tv('nf-dim'))parts.push(tv('nf-dim'));
+      return parts.join('_');
+    },
+    tokFn: () => buildToks(['nf-creador|s','nf-disciplina|s','nf-categoria|s','nf-desc|t','nf-dim|d'])
+  },
+  'tabla-control': {
+    selects: [['tc-disciplina','Disciplina'],['tc-categoria','Categoria']],
+    texts: ['tc-desc'],
+    build: () => {
+      const disc=sv('tc-disciplina'), catCod=sv('tc-categoria'), catDesc=catEsp('tc-categoria'), desc=dv('tc-desc');
+      const parts=[disc,catCod,catDesc].filter(Boolean);
+      if(desc)parts.push(desc);
+      return parts.join('_');
+    },
+    tokFn: () => {
+      const tks=[];
+      if(sv('tc-disciplina')){tok(tks,sv('tc-disciplina'),'code');sep(tks);}
+      if(sv('tc-categoria')){tok(tks,sv('tc-categoria'),'code');sep(tks);}
+      const cd=catEsp('tc-categoria');
+      if(cd){tok(tks,cd,'desc');sep(tks);}
+      if(dv('tc-desc'))tok(tks,dv('tc-desc'),'desc');
+      trim(tks);return tks;
+    }
+  },
+  'tabla-cuant': {
+    selects: [['tq-categoria','Categoria']],
+    texts: ['tq-desc'],
+    build: () => {
+      const catCod=sv('tq-categoria'), catDesc=catEsp('tq-categoria'), desc=dv('tq-desc');
+      const parts=['BOQ',catCod,catDesc].filter(Boolean);
+      if(desc)parts.push(desc);
+      return parts.join('_');
+    },
+    tokFn: () => {
+      const tks=[];
+      tok(tks,'BOQ','code');sep(tks);
+      if(sv('tq-categoria')){tok(tks,sv('tq-categoria'),'code');sep(tks);}
+      const cd=catEsp('tq-categoria');
+      if(cd){tok(tks,cd,'desc');sep(tks);}
+      if(dv('tq-desc'))tok(tks,dv('tq-desc'),'desc');
+      trim(tks);return tks;
+    }
+  },
+  planificacion: {
+    selects: [['pl-disciplina','Disciplina'],['pl-subdisciplina','Subdisciplina'],['pl-categoria','Categoria'],['pl-nivel','Nivel'],['pl-secuencia','Secuencia']],
+    texts: [],
+    build: () => [sv('pl-disciplina'),sv('pl-subdisciplina'),sv('pl-categoria'),sv('pl-nivel'),sv('pl-secuencia')].filter(Boolean).join('_'),
+    tokFn: () => buildToks(['pl-disciplina|s','pl-subdisciplina|s','pl-categoria|s','pl-nivel|s','pl-secuencia|s'])
+  }
+};
+
+// ─────────────────────────────────────────────
+//  HELPERS
+// ─────────────────────────────────────────────
+function sv(id){ const e=document.getElementById(id); return e?e.value:''; }
+function tv(id){ const e=document.getElementById(id); return e?e.value.trim():''; }
+
+// CamelCase auto-format for description fields
+// "edificio prim" → "EdificioPrim", "EDIFICIO PRIM" → "EdificioPrim", "EdificioPrim" → "EdificioPrim"
+function toCC(text){
+  if(!text)return'';
+  const t=text.trim();
+  if(!t)return'';
+  // If contains spaces, dashes or underscores → split into words and title-case each
+  if(/[\s\-_]/.test(t)){
+    return t.split(/[\s\-_]+/)
+      .filter(w=>w.length>0)
+      .map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase())
+      .join('');
+  }
+  // Single token: if ALL uppercase (e.g. "EDIFICIO"), title-case it
+  if(t===t.toUpperCase()&&/[A-ZÁÉÍÓÚÑÜ]/.test(t)){
+    return t.charAt(0).toUpperCase()+t.slice(1).toLowerCase();
+  }
+  // Otherwise: preserve user's case (already CamelCase or mixed), just ensure first letter uppercase
+  return t.charAt(0).toUpperCase()+t.slice(1);
+}
+
+// Description fields get auto-CamelCase. Exclude pr-desc (special format with altura).
+function isDescField(id){ return id.endsWith('-desc') && id!=='pr-desc'; }
+// dv = description value: CamelCase-converted text input
+function dv(id){ return isDescField(id) ? toCC(tv(id)) : tv(id); }
+
+function catEsp(id){
+  const e=document.getElementById(id);
+  if(!e||!e.value)return'';
+  const opt=e.options[e.selectedIndex];
+  if(!opt||!opt.text)return'';
+  const parts=opt.text.split('/');
+  return parts.length>1?parts[1].trim().split(' ')[0]:parts[0].trim().split(' ')[0];
+}
+
+function tok(arr,text,type){arr.push({text,type});}
+function sep(arr){arr.push({text:'_',type:'sep'});}
+function trim(arr){while(arr.length&&arr[arr.length-1].type==='sep')arr.pop();}
+
+function buildToks(specs){
+  const tks=[];
+  specs.forEach(spec=>{
+    const[id,type]=spec.split('|');
+    let val;
+    if(type==='s') val=sv(id);
+    else if(type==='d') val=tv(id);
+    else val = isDescField(id) ? toCC(tv(id)) : tv(id);
+    if(!val)return;
+    if(tks.length&&tks[tks.length-1].type!=='sep')sep(tks);
+    tok(tks,val,type==='d'?'dim':type==='s'?'code':'desc');
+  });
+  trim(tks);
+  return tks;
+}
+
+// ─────────────────────────────────────────────
+//  POPULATE SELECTS
+// ─────────────────────────────────────────────
+function populateSelect(id,tableKey){
+  const el=document.getElementById(id);
+  if(!el||!T[tableKey])return;
+  el.innerHTML='<option value="">— Selecciona —</option>';
+  T[tableKey].forEach(item=>{
+    const o=document.createElement('option');
+    o.value=item.code;
+    o.textContent=item.code+' · '+item.desc;
+    el.appendChild(o);
+  });
+}
+
+// Tablas que reciben el buscador (sólo las más extensas con muchos acrónimos)
+const SEARCHABLE_TABLES = ['Provincia','TipoArchivo','Disciplina','Subdisciplina','Categoria'];
+
+function initSelects(){
+  Object.entries(SECTIONS).forEach(([,def])=>{
+    (def.selects||[]).forEach(([id,tbl])=>{
+      populateSelect(id,tbl);
+      if(SEARCHABLE_TABLES.includes(tbl)) enhanceSelect(id);
+    });
+    (def.otherSelects||[]).forEach(([id,tbl])=>{
+      populateSelect(id,tbl);
+      if(SEARCHABLE_TABLES.includes(tbl)) enhanceSelect(id);
+    });
+  });
+}
+
+// ─────────────────────────────────────────────
+//  SEARCHABLE DROPDOWN (for large tables)
+// ─────────────────────────────────────────────
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function enhanceSelect(id){
+  const select=document.getElementById(id);
+  if(!select||select.dataset.enhanced)return;
+  select.dataset.enhanced='1';
+
+  // Wrapper
+  const wrap=document.createElement('div');
+  wrap.className='searchable-select';
+
+  // Button
+  const button=document.createElement('button');
+  button.type='button';
+  button.className='ss-button placeholder';
+  button.innerHTML='<span class="ss-label">— Selecciona —</span>';
+
+  // Panel
+  const panel=document.createElement('div');
+  panel.className='ss-panel';
+  panel.hidden=true;
+  panel.innerHTML=
+    '<div class="ss-search-wrap">'+
+      '<span class="ss-search-icon">⌕</span>'+
+      '<input class="ss-search" type="text" placeholder="Buscar por código o nombre..." />'+
+    '</div>'+
+    '<div class="ss-options"></div>';
+
+  // Insert wrapper before select, then place select inside
+  select.parentNode.insertBefore(wrap, select);
+  wrap.appendChild(button);
+  wrap.appendChild(panel);
+  wrap.appendChild(select);
+  select.classList.add('hidden-native');
+
+  const optsEl=panel.querySelector('.ss-options');
+  const searchInput=panel.querySelector('.ss-search');
+
+  function renderOptions(filter){
+    const f=(filter||'').toLowerCase().trim();
+    optsEl.innerHTML='';
+
+    // Add "Clear selection" row if there's a current value
+    if(select.value){
+      const clearRow=document.createElement('div');
+      clearRow.className='ss-clear-row';
+      clearRow.textContent='× Limpiar selección';
+      clearRow.addEventListener('click', e=>{
+        e.stopPropagation();
+        select.value='';
+        select.dispatchEvent(new Event('change'));
+        updateButton();
+        closePanel();
+      });
+      optsEl.appendChild(clearRow);
+    }
+
+    const opts=Array.from(select.options).filter(o=>o.value);
+    const filtered=opts.filter(o=>
+      !f ||
+      o.value.toLowerCase().includes(f) ||
+      o.text.toLowerCase().includes(f)
+    );
+    if(filtered.length===0){
+      const empty=document.createElement('div');
+      empty.className='ss-empty';
+      empty.textContent='Sin resultados para "'+filter+'"';
+      optsEl.appendChild(empty);
+      return;
+    }
+    filtered.forEach(o=>{
+      const item=document.createElement('div');
+      const isSel=select.value===o.value;
+      item.className='ss-option'+(isSel?' selected':'');
+      // o.text is "CODE · description" → show as chip + text
+      const parts=o.text.split(' · ');
+      const code=parts[0];
+      const desc=parts.slice(1).join(' · ')||'';
+      item.innerHTML='<span class="ss-option-code">'+escapeHtml(code)+'</span><span class="ss-option-text">'+escapeHtml(desc)+'</span>';
+      item.addEventListener('click',()=>{
+        select.value=o.value;
+        select.dispatchEvent(new Event('change'));
+        updateButton();
+        closePanel();
+      });
+      optsEl.appendChild(item);
+    });
+  }
+
+  function updateButton(){
+    if(select.value){
+      const sel=select.options[select.selectedIndex];
+      button.classList.remove('placeholder');
+      const parts=sel.text.split(' · ');
+      const code=parts[0];
+      const desc=parts.slice(1).join(' · ')||'';
+      button.querySelector('.ss-label').innerHTML='<span class="ss-code-chip">'+escapeHtml(code)+'</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escapeHtml(desc)+'</span>';
+    }else{
+      button.classList.add('placeholder');
+      button.querySelector('.ss-label').textContent='— Selecciona —';
+    }
+  }
+
+  function openPanel(){
+    closeAllSearchPanels();
+    wrap.classList.add('open');
+    panel.hidden=false;
+    searchInput.value='';
+    renderOptions('');
+    setTimeout(()=>searchInput.focus(),30);
+  }
+  function closePanel(){
+    wrap.classList.remove('open');
+    panel.hidden=true;
+  }
+
+  button.addEventListener('click', e=>{
+    e.stopPropagation();
+    if(wrap.classList.contains('open')) closePanel();
+    else openPanel();
+  });
+  searchInput.addEventListener('input', e=>renderOptions(e.target.value));
+  searchInput.addEventListener('click', e=>e.stopPropagation());
+  searchInput.addEventListener('keydown', e=>{
+    if(e.key==='Escape'){closePanel();button.focus();}
+    else if(e.key==='Enter'){
+      e.preventDefault();
+      const firstOpt=optsEl.querySelector('.ss-option');
+      if(firstOpt)firstOpt.click();
+    }
+  });
+
+  updateButton();
+  // Expose updater for reset
+  select._customWidget={updateButton};
+}
+
+function closeAllSearchPanels(){
+  document.querySelectorAll('.searchable-select.open').forEach(w=>{
+    w.classList.remove('open');
+    const p=w.querySelector('.ss-panel');
+    if(p)p.hidden=true;
+  });
+}
+
+// Click outside any searchable select → close all panels
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.searchable-select')) closeAllSearchPanels();
+});
+
+// ─────────────────────────────────────────────
+//  UPDATE CHIPS
+// ─────────────────────────────────────────────
+function updateChip(id,val,isText){
+  const chip=document.getElementById(id+'-chip');
+  if(!chip)return;
+  if(val){
+    chip.textContent='→ '+val;
+    chip.className='code-chip has-value'+(isText?' text-value':'');
+  }else{
+    chip.textContent='—';
+    chip.className='code-chip';
+  }
+}
+
+// ─────────────────────────────────────────────
+//  UPDATE RESULT
+// ─────────────────────────────────────────────
+let currentSection='proyectos';
+
+function updateResult(){
+  const sec=SECTIONS[currentSection];
+  if(!sec)return;
+
+  // Update chips for selects
+  (sec.selects||[]).forEach(([id])=>{
+    updateChip(id,sv(id),false);
+  });
+  (sec.otherSelects||[]).forEach(([id])=>{
+    updateChip(id,sv(id),false);
+  });
+  // Update chips for texts
+  (sec.texts||[]).forEach(id=>{
+    // handle both text inputs ending in -txt and plain
+    const realId=id.endsWith('-txt')?id:id;
+    const chipId=id.endsWith('-txt')?id.replace('-txt',''):id;
+    updateChip(chipId,tv(realId),true);
+    // also handle raw id chip
+    const chip2=document.getElementById(realId+'-chip');
+    if(chip2){
+      // For description fields, show the CamelCase-converted value so the user sees what will be generated
+      const val = isDescField(realId) ? toCC(tv(realId)) : tv(realId);
+      chip2.textContent=val?'→ '+val:'—';
+      chip2.className='code-chip'+(val?' has-value text-value':'');
+    }
+  });
+
+  const result=sec.build();
+  const display=document.getElementById('result-display');
+  if(result){
+    display.textContent=result;
+    display.classList.remove('empty');
+  }else{
+    display.textContent='— sin selección —';
+    display.classList.add('empty');
+  }
+
+  // Tokens
+  const tokensRow=document.getElementById('tokens-row');
+  const tks=sec.tokFn?sec.tokFn():[];
+  tokensRow.innerHTML='';
+  tks.forEach(tk=>{
+    const span=document.createElement('span');
+    span.className='token '+tk.type;
+    span.textContent=tk.text;
+    tokensRow.appendChild(span);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  SECTION SWITCH
+// ─────────────────────────────────────────────
+function switchSection(sec){
+  closeAllSearchPanels();
+  document.querySelectorAll('.generator-section').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  const secEl=document.getElementById('sec-'+sec);
+  const navEl=document.getElementById('nav-'+sec);
+  if(secEl)secEl.classList.add('active');
+  if(navEl)navEl.classList.add('active');
+  currentSection=sec;
+  const display=document.getElementById('result-display');
+  display.textContent='— sin selección —';
+  display.classList.add('empty');
+  document.getElementById('tokens-row').innerHTML='';
+}
+
+// ─────────────────────────────────────────────
+//  COPY
+// ─────────────────────────────────────────────
+function copyResult(){
+  const text=document.getElementById('result-display').textContent;
+  if(!text||text==='— sin selección —')return;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=document.getElementById('copy-btn');
+    btn.textContent='✓ COPIADO';
+    btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='COPIAR';btn.classList.remove('copied');},2000);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  RESET
+// ─────────────────────────────────────────────
+function resetForm(){
+  document.querySelectorAll('select').forEach(e=>{
+    e.value='';
+    if(e._customWidget)e._customWidget.updateButton();
+  });
+  document.querySelectorAll('input[type="text"]').forEach(e=>e.value='');
+  document.querySelectorAll('.code-chip').forEach(e=>{e.textContent='—';e.className='code-chip';});
+  const display=document.getElementById('result-display');
+  display.textContent='— sin selección —';
+  display.classList.add('empty');
+  document.getElementById('tokens-row').innerHTML='';
+  closeAllSearchPanels();
+}
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+initSelects();
+</script>
+</body>
+</html>

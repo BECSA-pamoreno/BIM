@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Herramientas BIM · BECSA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange: #F28C00;
+    --orange-light: #FF9D1A;
+    --navy: #1B3A6B;
+    --navy-deep: #13294B;
+    --bg: #F5F7FA;
+    --line: #E2E8F0;
+    --muted: #5C6B7E;
+    --ink: #1A2332;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  header {
+    background: var(--navy);
+    border-top: 4px solid var(--orange);
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .mark {
+    background: var(--orange);
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    padding: 8px 14px;
+    border-radius: 6px;
+  }
+  header h1 {
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+  }
+  header span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #A9C0E0;
+    margin-top: 2px;
+    font-weight: 400;
+  }
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 24px;
+  }
+  .intro {
+    color: var(--muted);
+    font-size: 14.5px;
+    margin-bottom: 32px;
+    max-width: 560px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+  }
+  a.card {
+    display: block;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.15s;
+  }
+  a.card:hover {
+    border-color: var(--navy);
+    box-shadow: 0 8px 22px rgba(19,41,75,0.12);
+    transform: translateY(-2px);
+  }
+  .card .icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 9px;
+    background: rgba(242,140,0,0.12);
+    color: var(--orange);
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+  .card h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy-deep);
+    margin-bottom: 6px;
+  }
+  .card p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="mark">BECSA</div>
+  <h1>Herramientas BIM
+    <span>Repositorio interno de utilidades</span>
+  </h1>
+</header>
+
+<main>
+  <p class="intro">Accede a las herramientas BIM disponibles para el equipo.</p>
+
+  <div class="grid">
+    <a class="card" href="generador.html">
+      <div class="icon">⌘</div>
+      <h2>Generador de Nombres BIM</h2>
+      <p>Construye nombres de archivos y elementos según la nomenclatura estándar de BECSA.</p>
+    </a>
+
+    <a class="card" href="manual.html">
+      <div class="icon">☰</div>
+      <h2>Manual Técnico BIM</h2>
+      <p>Repositorio de consulta con la documentación técnica y criterios BIM del equipo.</p>
+    </a>
+  </div>
+</main>
+
+</body>
+</html>
