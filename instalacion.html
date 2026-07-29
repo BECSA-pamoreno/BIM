@@ -297,12 +297,17 @@
   <section>
     <h2><span class="stepnum">3</span> Copia los archivos a la carpeta de Addins de Revit</h2>
     <div class="panel">
-      <p>Con <b>Revit cerrado</b>, copia los dos archivos desbloqueados (.addin y .dll) a la carpeta de addins correspondiente a tu versión:</p>
+      <div class="callout warn">
+        <b>Importante — renombra los archivos antes de copiarlos.</b> Los descargas como <span style="font-family:var(--mono);">BECSATools_2023.dll</span> o <span style="font-family:var(--mono);">BECSATools_2024.dll</span> (con el año, para diferenciarlos en esta página), pero Revit espera el nombre exacto sin sufijo. Quita el <span style="font-family:var(--mono);">_2023</span> / <span style="font-family:var(--mono);">_2024</span> de los dos archivos antes de pegarlos, dejándolos como:
+        <span class="path" style="margin-top:8px;">BECSATools.addin</span>
+        <span class="path" style="margin-top:6px;">BECSATools.dll</span>
+      </div>
+      <p>Con <b>Revit cerrado</b>, copia los dos archivos ya renombrados y desbloqueados a la carpeta de addins correspondiente a tu versión:</p>
       <span class="path">C:\Users\<span class="var">TuUsuario</span>\AppData\Roaming\Autodesk\Revit\Addins\<span class="var">2023</span></span>
       <p style="margin-top:2px;">o, si es la versión 2024:</p>
       <span class="path">C:\Users\<span class="var">TuUsuario</span>\AppData\Roaming\Autodesk\Revit\Addins\<span class="var">2024</span></span>
       <div class="callout">
-        Si la carpeta <span style="font-family:var(--mono);">Addins\2023</span> o <span style="font-family:var(--mono);">Addins\2024</span> no existe, créala manualmente con ese nombre antes de pegar los archivos.
+        Si la carpeta <span style="font-family:var(--mono);">Addins\2023</span> o <span style="font-family:var(--mono);">Addins\2024</span> no existe, créala manualmente con ese nombre antes de pegar los archivos. Como cada versión tiene su propia carpeta, no hay problema en que ambas se llamen igual (<span style="font-family:var(--mono);">BECSATools.addin</span> / <span style="font-family:var(--mono);">BECSATools.dll</span>) una en cada carpeta.
       </div>
     </div>
   </section>
