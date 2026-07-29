@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>BECSATools</Name>
+    <Assembly>BECSATools.dll</Assembly>
+    <AddInId>B2C3D4E5-F6A7-8901-BCDE-F12345678901</AddInId>
+    <FullClassName>BECSATools.BECSAApp</FullClassName>
+    <VendorId>BECSA</VendorId>
+    <VendorDescription>BECSA — BIM Tools for Revit 2023</VendorDescription>
+  </AddIn>
+</RevitAddIns>
