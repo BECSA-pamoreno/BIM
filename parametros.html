@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>BECSA · Gestor de Parámetros Compartidos · Revit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1B3A6B; --navy-dark:#142b4f; --navy-soft:#e8eef7;
+    --orange:#F28C00; --orange-dark:#cf7700; --orange-soft:#fff3e0;
+    --ink:#1a1f2e; --ink-soft:#4a5568; --muted:#8492a6; --line:#e2e8f0; --line-strong:#cbd5e0;
+    --bg:#f7f9fc; --card:#ffffff; --hover:#f1f5fb;
+    --danger:#c53030; --danger-soft:#fed7d7;
+    --ok:#2f855a; --ok-soft:#c6f6d5;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',-apple-system,system-ui,sans-serif;
+    background:var(--bg); color:var(--ink); font-size:14px; line-height:1.45;
+    display:flex; flex-direction:column;
+  }
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+
+  /* HEADER */
+  header{
+    background:var(--navy); color:#fff; padding:14px 24px;
+    display:flex; align-items:center; gap:20px;
+    border-bottom:3px solid var(--orange);
+  }
+  .brand{display:flex; align-items:center; gap:14px}
+  .brand-mark{
+    width:36px; height:36px; background:var(--orange);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:14px; color:var(--navy);
+    border-radius:3px; letter-spacing:-0.5px;
+  }
+  .brand-text h1{font-size:15px; font-weight:600; letter-spacing:0.2px}
+  .brand-text .sub{font-size:11px; color:#a8b8d4; font-weight:400; margin-top:1px; letter-spacing:0.3px; text-transform:uppercase}
+  .stats{margin-left:auto; display:flex; gap:18px; font-size:12px; color:#c5d0e3}
+  .stats b{color:#fff; font-weight:600}
+
+  /* TOOLBAR */
+  .toolbar{
+    background:var(--card); border-bottom:1px solid var(--line);
+    padding:10px 24px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+  }
+  .btn{
+    border:1px solid var(--line-strong); background:#fff; color:var(--ink);
+    padding:7px 13px; border-radius:5px; font-family:inherit; font-size:13px; font-weight:500;
+    cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+    transition:all .12s;
+  }
+  .btn:hover{background:var(--hover); border-color:var(--navy)}
+  .btn-primary{background:var(--navy); color:#fff; border-color:var(--navy)}
+  .btn-primary:hover{background:var(--navy-dark); border-color:var(--navy-dark)}
+  .btn-accent{background:var(--orange); color:#fff; border-color:var(--orange)}
+  .btn-accent:hover{background:var(--orange-dark); border-color:var(--orange-dark)}
+  .btn-ghost{background:transparent; border-color:transparent; color:var(--ink-soft)}
+  .btn-ghost:hover{background:var(--hover); color:var(--ink)}
+  .btn-danger{color:var(--danger); border-color:var(--line)}
+  .btn-danger:hover{background:var(--danger-soft); border-color:var(--danger); color:var(--danger)}
+  .btn-sm{padding:4px 8px; font-size:12px}
+  .btn-icon{padding:5px 7px}
+  .toolbar .sep{flex:1}
+  .search-wrap{position:relative}
+  input.search{
+    width:280px; padding:7px 11px 7px 32px; border:1px solid var(--line-strong);
+    border-radius:5px; font-family:inherit; font-size:13px; background:#fff;
+  }
+  input.search:focus{outline:none; border-color:var(--navy); box-shadow:0 0 0 3px rgba(27,58,107,.12)}
+  .search-icon{position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:14px}
+  select.filter{
+    padding:7px 11px; border:1px solid var(--line-strong); border-radius:5px;
+    font-family:inherit; font-size:13px; background:#fff; cursor:pointer;
+  }
+  select.filter:focus{outline:none; border-color:var(--navy)}
+
+  /* LAYOUT */
+  .main{flex:1; display:flex; overflow:hidden}
+  .sidebar{
+    width:300px; background:var(--card); border-right:1px solid var(--line);
+    overflow-y:auto; display:flex; flex-direction:column;
+  }
+  .sidebar-header{
+    padding:14px 18px 10px; display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--card); z-index:2;
+  }
+  .sidebar-header h2{font-size:11px; font-weight:600; color:var(--muted); letter-spacing:0.8px; text-transform:uppercase}
+  .group-list{padding:6px}
+  .group-item{
+    display:flex; align-items:center; gap:8px; padding:8px 11px; border-radius:5px;
+    cursor:pointer; font-size:13px; color:var(--ink-soft); position:relative;
+  }
+  .group-item:hover{background:var(--hover); color:var(--ink)}
+  .group-item:hover .group-actions{opacity:1}
+  .group-item.active{background:var(--navy-soft); color:var(--navy); font-weight:500}
+  .group-item.active .group-count{background:var(--navy); color:#fff}
+  .group-name{flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .group-count{
+    background:var(--line); color:var(--ink-soft); font-size:11px; font-weight:600;
+    padding:1px 7px; border-radius:10px; min-width:22px; text-align:center;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .group-actions{
+    opacity:0; transition:opacity .1s; display:flex; gap:2px; margin-left:2px;
+  }
+  .group-actions button{
+    background:transparent; border:none; color:var(--muted); cursor:pointer;
+    padding:2px 4px; border-radius:3px; font-size:12px;
+  }
+  .group-actions button:hover{background:#fff; color:var(--navy)}
+  .group-actions button.del:hover{color:var(--danger); background:var(--danger-soft)}
+  .group-item.all-item{font-weight:600; color:var(--ink); border-bottom:1px solid var(--line); border-radius:0; margin:0 -6px 6px; padding-left:17px; padding-right:17px}
+  .group-item.all-item.active{background:var(--navy); color:#fff}
+  .group-item.all-item.active .group-count{background:var(--orange); color:#fff}
+
+  .sidebar-foot{padding:10px; border-top:1px solid var(--line); margin-top:auto; position:sticky; bottom:0; background:var(--card)}
+
+  /* CONTENT */
+  .content{flex:1; overflow:auto; padding:0; background:var(--bg)}
+  .content-head{
+    padding:14px 24px 10px; display:flex; align-items:baseline; gap:12px;
+    background:var(--bg); position:sticky; top:0; z-index:1;
+  }
+  .content-head h2{font-size:16px; font-weight:600; color:var(--ink)}
+  .content-head .sub{color:var(--muted); font-size:12px; font-family:'JetBrains Mono',monospace}
+
+  .table-wrap{padding:0 24px 24px}
+  table{
+    width:100%; border-collapse:separate; border-spacing:0;
+    background:var(--card); border:1px solid var(--line); border-radius:6px; overflow:hidden;
+  }
+  th{
+    background:#fafbfc; border-bottom:1px solid var(--line); padding:9px 12px;
+    text-align:left; font-size:11px; font-weight:600; color:var(--muted);
+    letter-spacing:0.4px; text-transform:uppercase; white-space:nowrap;
+    position:sticky; top:0; z-index:1;
+  }
+  th.sortable{cursor:pointer; user-select:none}
+  th.sortable:hover{color:var(--navy)}
+  th .sort-ind{display:inline-block; margin-left:3px; color:var(--orange); font-size:10px}
+  td{padding:8px 12px; border-bottom:1px solid var(--line); vertical-align:middle; font-size:13px}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#fafbfc}
+  tr.row-actions-visible td .row-acts{opacity:1}
+
+  td.guid{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); white-space:nowrap}
+  td.guid:hover{color:var(--navy); cursor:pointer}
+  td.name{font-weight:500; color:var(--ink); font-family:'JetBrains Mono',monospace; font-size:12px}
+  td.desc{color:var(--ink-soft); font-size:12px; max-width:340px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  td.group-cell{color:var(--ink-soft); font-size:12px}
+  td.actions{width:90px; text-align:right; white-space:nowrap}
+  td.actions .row-acts{display:inline-flex; gap:2px; opacity:0; transition:opacity .1s}
+  tr:hover .row-acts{opacity:1}
+  td.actions button{
+    background:transparent; border:none; cursor:pointer; padding:4px 6px;
+    border-radius:4px; color:var(--muted); font-size:13px;
+  }
+  td.actions button:hover{background:var(--navy-soft); color:var(--navy)}
+  td.actions button.del:hover{background:var(--danger-soft); color:var(--danger)}
+
+  .chip{
+    display:inline-flex; align-items:center; padding:2px 8px; border-radius:10px;
+    font-size:11px; font-weight:500; font-family:'JetBrains Mono',monospace;
+    background:var(--navy-soft); color:var(--navy); letter-spacing:0.2px;
+  }
+  .chip.t-text{background:#e8eef7; color:#2c5282}
+  .chip.t-num{background:#fef5e7; color:#9c5700}
+  .chip.t-bool{background:#e6f4ea; color:#1e6e2f}
+  .chip.t-len{background:#fce7f3; color:#9d174d}
+  .chip.t-mat{background:#ede9fe; color:#5b21b6}
+  .chip.t-mep{background:#cffafe; color:#155e75}
+  .chip.t-url{background:#f3f4f6; color:#4b5563}
+
+  .empty{
+    text-align:center; padding:80px 24px; color:var(--muted);
+  }
+  .empty h3{color:var(--ink-soft); margin-bottom:8px; font-weight:600}
+  .empty p{font-size:13px}
+
+  /* MODAL */
+  .overlay{
+    position:fixed; inset:0; background:rgba(20,30,55,.55); display:none;
+    align-items:center; justify-content:center; padding:24px; z-index:100;
+  }
+  .overlay.open{display:flex}
+  .modal{
+    background:#fff; border-radius:8px; width:100%; max-width:640px;
+    max-height:calc(100vh - 48px); display:flex; flex-direction:column;
+    box-shadow:0 20px 60px rgba(0,0,0,.25); overflow:hidden;
+  }
+  .modal-head{
+    padding:18px 24px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between;
+    background:var(--navy); color:#fff;
+  }
+  .modal-head h3{font-size:15px; font-weight:600}
+  .modal-head button{background:transparent; border:none; color:#fff; cursor:pointer; font-size:22px; opacity:.8; padding:0; line-height:1}
+  .modal-head button:hover{opacity:1}
+  .modal-body{padding:22px 24px; overflow-y:auto; flex:1}
+  .modal-foot{padding:14px 24px; border-top:1px solid var(--line); display:flex; gap:8px; justify-content:flex-end; background:#fafbfc}
+
+  .field{margin-bottom:14px}
+  .field label{display:block; font-size:11px; font-weight:600; color:var(--muted); letter-spacing:0.5px; text-transform:uppercase; margin-bottom:5px}
+  .field label .req{color:var(--orange); margin-left:2px}
+  .field input[type=text], .field textarea, .field select{
+    width:100%; padding:8px 11px; border:1px solid var(--line-strong); border-radius:5px;
+    font-family:inherit; font-size:13px; background:#fff; color:var(--ink);
+  }
+  .field input.mono, .field select.mono{font-family:'JetBrains Mono',monospace; font-size:12px}
+  .field textarea{resize:vertical; min-height:60px; font-family:inherit}
+  .field input:focus, .field textarea:focus, .field select:focus{outline:none; border-color:var(--navy); box-shadow:0 0 0 3px rgba(27,58,107,.12)}
+  .field-row{display:flex; gap:12px}
+  .field-row .field{flex:1}
+  .field-hint{font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4}
+  .field-checks{display:flex; gap:18px; padding-top:4px; flex-wrap:wrap}
+  .check{display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; color:var(--ink-soft)}
+  .check input{cursor:pointer; width:14px; height:14px}
+  .guid-input-wrap{display:flex; gap:6px}
+  .guid-input-wrap input{flex:1}
+  .err-msg{
+    background:var(--danger-soft); color:var(--danger); padding:9px 12px;
+    border-radius:5px; font-size:12px; margin-bottom:12px; display:none;
+  }
+  .err-msg.show{display:block}
+
+  /* TOAST */
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:#fff; padding:10px 18px; border-radius:6px;
+    font-size:13px; z-index:200; box-shadow:0 8px 24px rgba(0,0,0,.2);
+    opacity:0; transition:opacity .2s, transform .2s; pointer-events:none;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px)}
+  .toast.ok{background:var(--ok)}
+  .toast.err{background:var(--danger)}
+
+  /* CONFIRM */
+  .confirm-msg{font-size:13px; color:var(--ink-soft); line-height:1.6; margin-bottom:10px}
+  .confirm-msg b{color:var(--ink); font-family:'JetBrains Mono',monospace; font-size:12px}
+
+  /* RESPONSIVE */
+  @media(max-width:900px){
+    .sidebar{width:240px}
+    input.search{width:200px}
+    td.desc{max-width:180px}
+  }
+
+  /* Footer info */
+  footer{
+    padding:6px 24px; background:var(--card); border-top:1px solid var(--line);
+    font-size:11px; color:var(--muted); display:flex; gap:16px; align-items:center;
+  }
+  footer .doc-code{font-family:'JetBrains Mono',monospace; color:var(--ink-soft)}
+  footer .sep-dot{color:var(--line-strong)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark">BEC</div>
+    <div class="brand-text">
+      <h1>Gestor de Parámetros Compartidos</h1>
+      <div class="sub">Revit · ISO 19650</div>
+    </div>
+  </div>
+  <div class="stats">
+    <span>Versión <b id="stat-version">2</b></span>
+    <span><b id="stat-params">0</b> parámetros</span>
+    <span><b id="stat-groups">0</b> grupos</span>
+    <a href="index.html" style="font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;color:var(--muted);text-decoration:none;margin-left:6px;">← Inicio</a>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button class="btn btn-primary" data-act="import">Importar .txt</button>
+  <button class="btn btn-accent" data-act="export">Exportar .txt</button>
+  <button class="btn" data-act="new-param">+ Parámetro</button>
+  <div class="sep"></div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search" id="search" placeholder="Buscar por nombre, GUID o descripción…">
+  </div>
+  <select class="filter" id="filter-type">
+    <option value="">Todos los tipos</option>
+  </select>
+  <button class="btn btn-ghost btn-sm" data-act="reset" title="Restablecer al archivo original">Reiniciar</button>
+  <input type="file" id="file-input" accept=".txt" style="display:none">
+</div>
+
+<div class="main">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Grupos</h2>
+      <button class="btn btn-sm" data-act="new-group">+ Grupo</button>
+    </div>
+    <div class="group-list" id="group-list"></div>
+  </aside>
+
+  <main class="content">
+    <div class="content-head">
+      <h2 id="content-title">Todos los parámetros</h2>
+      <span class="sub" id="content-sub"></span>
+    </div>
+    <div class="table-wrap">
+      <table id="params-table">
+        <thead>
+          <tr>
+            <th class="sortable" data-sort="name">Nombre <span class="sort-ind" data-ind="name"></span></th>
+            <th class="sortable" data-sort="datatype">Tipo <span class="sort-ind" data-ind="datatype"></span></th>
+            <th class="sortable" data-sort="group">Grupo <span class="sort-ind" data-ind="group"></span></th>
+            <th>Descripción</th>
+            <th>GUID</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="params-body"></tbody>
+      </table>
+      <div class="empty" id="empty-state" style="display:none">
+        <h3>Sin resultados</h3>
+        <p>Ningún parámetro coincide con los filtros aplicados.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <span class="doc-code">DOCCOR-BEC-XX-XX-PA-W-0001</span>
+  <span class="sep-dot">·</span>
+  <span>Compatible con archivo de parámetros compartidos de Revit (UTF-16 LE, CRLF, separador tab)</span>
+  <span class="sep-dot">·</span>
+  <span id="save-status">Guardado automático activo</span>
+</footer>
+
+<!-- MODAL PARAM -->
+<div class="overlay" id="modal-param">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="param-modal-title">Nuevo parámetro</h3>
+      <button data-act="close-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="err-msg" id="param-err"></div>
+      <div class="field">
+        <label>Nombre <span class="req">*</span></label>
+        <input type="text" id="p-name" class="mono" placeholder="BEC_XX_NombreParametro">
+        <div class="field-hint">El prefijo <span class="mono">BEC_NN_</span> se completa solo según el grupo elegido. Escribe solo el nombre en CamelCase a continuación.</div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Tipo de dato <span class="req">*</span></label>
+          <select id="p-datatype" class="mono"></select>
+        </div>
+        <div class="field">
+          <label>Grupo <span class="req">*</span></label>
+          <select id="p-group"></select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Descripción</label>
+        <textarea id="p-description" rows="2" placeholder="Descripción del propósito del parámetro"></textarea>
+      </div>
+      <div class="field">
+        <label>GUID</label>
+        <div class="guid-input-wrap">
+          <input type="text" id="p-guid" class="mono" placeholder="se generará automáticamente">
+          <button class="btn btn-sm" data-act="regen-guid" type="button">Regenerar</button>
+        </div>
+        <div class="field-hint">GUID v4 estándar. Solo editable manualmente si necesitas reutilizar uno existente.</div>
+      </div>
+      <div class="field">
+        <label>Opciones</label>
+        <div class="field-checks">
+          <label class="check"><input type="checkbox" id="p-visible" checked> Visible</label>
+          <label class="check"><input type="checkbox" id="p-usermod" checked> Modificable por usuario</label>
+          <label class="check"><input type="checkbox" id="p-hide"> Ocultar cuando no tenga valor</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-act="close-modal">Cancelar</button>
+      <button class="btn btn-primary" data-act="save-param">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GROUP -->
+<div class="overlay" id="modal-group">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <h3 id="group-modal-title">Nuevo grupo</h3>
+      <button data-act="close-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="err-msg" id="group-err"></div>
+      <div class="field">
+        <label>ID <span class="req">*</span></label>
+        <input type="text" id="g-id" class="mono" placeholder="22">
+        <div class="field-hint">Número entero único. Sugerido: <span class="mono" id="g-id-suggest"></span></div>
+      </div>
+      <div class="field">
+        <label>Nombre <span class="req">*</span></label>
+        <input type="text" id="g-name" placeholder="22_NuevoGrupo">
+        <div class="field-hint">Convención BECSA: <span class="mono">NN_NombreDescriptivo</span></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-act="close-modal">Cancelar</button>
+      <button class="btn btn-primary" data-act="save-group">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRM -->
+<div class="overlay" id="modal-confirm">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head">
+      <h3 id="confirm-title">Confirmar</h3>
+      <button data-act="close-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-msg" id="confirm-msg"></div>
+      <div id="confirm-extra"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-act="close-modal">Cancelar</button>
+      <button class="btn btn-danger" data-act="confirm-yes" id="confirm-yes-btn">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   BECSA — Gestor de Parámetros Compartidos Revit
+   Single-file HTML. Sin dependencias externas (solo Google Fonts).
+   Formato salida: UTF-16 LE + BOM + CRLF + tab (idéntico a Revit).
+   ===================================================================== */
+
+// ---------- Datos iniciales embebidos (extraídos del archivo del usuario) ----------
+const INITIAL_DATA = {"meta":{"version":"2","minVersion":"1"},"groups":[{"id":1,"name":"01_Navegador de Proyecto, Vistas y Planos"},{"id":2,"name":"02_Personal y Empresa"},{"id":3,"name":"03_Dimensions"},{"id":4,"name":"04_Anotaciones"},{"id":5,"name":"05_Identificacion ID"},{"id":6,"name":"06_Materiales"},{"id":7,"name":"07_Mediciones"},{"id":8,"name":"08_LOD"},{"id":9,"name":"09_Localización y Posición"},{"id":10,"name":"10_Propiedades de los Elementos"},{"id":11,"name":"11_Carpinterías"},{"id":12,"name":"12_Contraincendios"},{"id":13,"name":"13_Planning Tareas"},{"id":14,"name":"14_Estructura"},{"id":15,"name":"15_Fontanería"},{"id":16,"name":"16_Electricidad"},{"id":17,"name":"17_Climatización"},{"id":18,"name":"18_Saneamiento"},{"id":19,"name":"19_Areas y Habitaciones"},{"id":20,"name":"20_IFC"},{"id":21,"name":"21_Interferencias y Avisos"}],"params":[{"guid":"21045e02-9d9e-41b5-b734-c4ac538e9ee8","name":"BEC_10_Características","datatype":"TEXT","datacategory":"","group":10,"visible":1,"description":"Caracteristicas elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"d81e6502-9f27-4966-85c1-0e67d1501b2e","name":"BEC_08_LOIActual","datatype":"TEXT","datacategory":"","group":8,"visible":1,"description":"LOI Actual","userModifiable":1,"hideWhenNoValue":0},{"guid":"fe785808-6a6f-4e7e-b3dd-577e7871d3f3","name":"BEC_03_RadioAux02","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Parámetro Auxiliar polivalente de radio","userModifiable":1,"hideWhenNoValue":0},{"guid":"1d727608-3089-40b3-b624-2c36b84c0462","name":"BEC_PLA_TareaFechaFinal","datatype":"TEXT","datacategory":"","group":13,"visible":1,"description":"Fecha final de la tarea asociada al elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"f7c9970a-04c9-416e-9447-0c65dadd8d02","name":"BEC_01_PlanoCategoriaSub","datatype":"TEXT","datacategory":"","group":1,"visible":1,"description":"Categoría Secundaria del Organizador de Planos","userModifiable":1,"hideWhenNoValue":0},{"guid":"a7889c0a-0c24-4fa0-9867-ea37af75a45b","name":"BEC_07_Ignorado","datatype":"YESNO","datacategory":"","group":7,"visible":1,"description":"Check que determina si el elemento se ha de ignorar en la medición","userModifiable":1,"hideWhenNoValue":0},{"guid":"e957070b-bf56-43f2-9204-7784de656e43","name":"BEC_03_RadioAux01","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Parámetro Auxiliar polivalente de radio","userModifiable":1,"hideWhenNoValue":0},{"guid":"c7723b0e-2049-413c-8966-81614fb85b9e","name":"BEC_08_LOIObjetivo","datatype":"TEXT","datacategory":"","group":8,"visible":1,"description":"LOI Objetivo a Alcanzar","userModifiable":1,"hideWhenNoValue":0},{"guid":"2af81c10-353d-4df5-83de-17d0b62275fe","name":"BEC_04_DescripcionAux01","datatype":"TEXT","datacategory":"","group":4,"visible":1,"description":"Parámetro Auxiliar Polivalente","userModifiable":1,"hideWhenNoValue":0},{"guid":"7186c212-3d9e-4b87-9ea8-e895b9b17f9f","name":"BEC_15_PresionNominal","datatype":"PIPING_PRESSURE","datacategory":"","group":15,"visible":1,"description":"Persión nominal en tuberías","userModifiable":1,"hideWhenNoValue":0},{"guid":"68bb5513-1ccc-450b-9f63-2f103576e100","name":"BEC_05_GuidFamilia","datatype":"TEXT","datacategory":"","group":5,"visible":1,"description":"","userModifiable":1,"hideWhenNoValue":0},{"guid":"2ac07715-d686-4ec6-9f80-68fb19882f52","name":"BEC_11_VidrioTipo","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Clasificación del Vidrio de la Carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"f0faab17-2df8-482f-b6f6-843c145d2af2","name":"BEC_10_Rendimientos","datatype":"TEXT","datacategory":"","group":10,"visible":1,"description":"Rendimiento elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"2ef6ff17-19f6-48a7-a30d-388cf480f8ac","name":"BEC_11_PanelDescripcion","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Descripción del Panel de la Carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"a233f118-2b60-498b-9ed0-5c14d9f7ae0d","name":"BEC_20_ifcSpatialContainer","datatype":"TEXT","datacategory":"","group":20,"visible":1,"description":"Copia editable del parámetro Hardcore de importación IFC: ifcSpatialContainer","userModifiable":1,"hideWhenNoValue":0},{"guid":"954d0c1e-f430-401b-bf9a-18d226e1b08e","name":"BEC_03_Radio","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Radio del elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"45e57020-7ed6-4759-8cdc-f629244dda73","name":"BEC_11_Tope","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Tope de la Carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"6541ca22-8bfd-4c2d-9077-e552163eda1b","name":"BEC_06_Material","datatype":"MATERIAL","datacategory":"","group":6,"visible":1,"description":"Material General del Elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"eeae6724-6129-46b0-aa7f-6b7a51e3e23b","name":"BEC_11_AperturaLado","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Lado de apertura de la carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"175c8524-bf17-4f2c-94bf-82197e13a030","name":"BEC_04_TextoEspecificacion","datatype":"MULTILINETEXT","datacategory":"","group":4,"visible":1,"description":"Especificación para Anotación","userModifiable":1,"hideWhenNoValue":0},{"guid":"84a01625-57f0-4547-828a-b3dcfa857eb1","name":"BEC_10_Precio","datatype":"NUMBER","datacategory":"","group":10,"visible":1,"description":"Coste elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"f7be2a25-0648-4d6b-8d68-ab8616de857c","name":"BEC_03_LongitudAux02","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Parámetro Auxiliar polivalente de dimensiones","userModifiable":1,"hideWhenNoValue":0},{"guid":"94a5aa27-0f85-4500-9392-b92aec51212f","name":"BEC_03_LongitudAux01","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Parámetro Auxiliar polivalente de dimensiones","userModifiable":1,"hideWhenNoValue":0},{"guid":"3210062a-ce94-4d1f-aaab-605fcb6619f0","name":"BEC_03_DiametroAux02","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Parámetro Auxiliar polivalente de diámetro","userModifiable":1,"hideWhenNoValue":0},{"guid":"741c442a-b29e-4842-a8b7-96672d8f004a","name":"BEC_11_Visor","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Visor de la Carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"cbf84a2b-6507-461a-9b39-8c72431b1ad5","name":"BEC_11_Bisagra","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Bisagra de la Carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"2d05872b-12f3-4d87-a455-b418f92de1a9","name":"BEC_05_Elemento","datatype":"TEXT","datacategory":"","group":5,"visible":1,"description":"Identificación del elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"0255762d-e464-406a-ba40-8b13e7ad369e","name":"BEC_20_ifcCheckAuto","datatype":"YESNO","datacategory":"","group":20,"visible":1,"description":"Copia editable del parámetro Hardcore de importación IFC: ifcCheckAuto","userModifiable":1,"hideWhenNoValue":0},{"guid":"0688932e-8a14-4c67-afa5-dd73fd02b6f6","name":"BEC_02_Nombre","datatype":"TEXT","datacategory":"","group":2,"visible":1,"description":"Nombre de la Empresa","userModifiable":1,"hideWhenNoValue":0},{"guid":"59bedf2e-973b-4a5f-a500-cb8aab96eb01","name":"BEC_10_CapacidadProduccion","datatype":"TEXT","datacategory":"","group":10,"visible":1,"description":"Capacidad de produccion de elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"1285d92f-ded7-4e09-9919-e70dd4b19689","name":"BEC_20_ifcName","datatype":"TEXT","datacategory":"","group":20,"visible":1,"description":"Copia editable del parámetro Hardcore de importación IFC: ifcName","userModifiable":1,"hideWhenNoValue":0},{"guid":"ca328331-f29a-4575-80da-755dab0c3eba","name":"BEC_03_AltoAux02","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Parámetro Auxiliar polivalente de dimensiones","userModifiable":1,"hideWhenNoValue":0},{"guid":"8b898035-7c21-449b-bb4d-beb5fa4e2e74","name":"BEC_03_Area","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Área del elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"79b35038-9a47-4924-a991-39e62a8a2a8f","name":"BEC_08_LODActual","datatype":"TEXT","datacategory":"","group":8,"visible":1,"description":"LOD Actual","userModifiable":1,"hideWhenNoValue":0},{"guid":"f0d03139-ebc8-4c36-a04b-e29d6c31707f","name":"BEC_10_PlazoPedido","datatype":"TEXT","datacategory":"","group":10,"visible":1,"description":"El plazo para entrega del elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"c8303539-7ae4-4c4b-9513-3d090a270b65","name":"BEC_11_Panel","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Tipo de Panel de la Carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"8438713a-4206-4e73-911a-86af7621e4af","name":"BEC_01_PlanoTipo","datatype":"TEXT","datacategory":"","group":1,"visible":1,"description":"Tipo Información del Plano","userModifiable":1,"hideWhenNoValue":0},{"guid":"7d2b163d-ff7b-45c8-882a-9d952efd9763","name":"BEC_PLA_TareaPropietario","datatype":"TEXT","datacategory":"","group":13,"visible":1,"description":"Propietario de la tarea asociada al elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"c3399f3e-ed5f-4b69-9c4a-682e95b92ff3","name":"BEC_11_Cierre","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Cierre de la Carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"64182e43-7f1b-4578-b5b7-bbabf508ab6c","name":"BEC_03_AnguloAux01","datatype":"ANGLE","datacategory":"","group":3,"visible":1,"description":"","userModifiable":1,"hideWhenNoValue":0},{"guid":"e4f0ec44-c665-4a92-8c65-a3390202eb88","name":"BEC_11_Marco","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Tipo de Marco de la Carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"0db5f345-11ac-4b01-bf73-3e5872421f03","name":"BEC_03_AnchoAux03","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"","userModifiable":1,"hideWhenNoValue":0},{"guid":"527db24a-920b-4e50-bf0e-069a58c4e0be","name":"BEC_07_Certificado","datatype":"YESNO","datacategory":"","group":7,"visible":1,"description":"Check de certificación elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"cec1564c-2624-450e-898e-2e3dc3eb4ffe","name":"BEC_05_TipoMarca","datatype":"LENGTH","datacategory":"","group":5,"visible":1,"description":"Marca de Tipo del elemento, consistente para Familias Cargables","userModifiable":1,"hideWhenNoValue":0},{"guid":"42f1e74c-982e-4fb9-bf2c-a36c9bcd9e66","name":"BEC_03_AnchoAux02","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Parámetro Auxiliar polivalente de dimensiones","userModifiable":1,"hideWhenNoValue":0},{"guid":"4a048b4d-c040-4c08-a38a-f6fd5540b92a","name":"BEC_20_ifcCheckManual","datatype":"YESNO","datacategory":"","group":20,"visible":1,"description":"Copia editable del parámetro Hardcore de importación IFC: ifcCheckManual","userModifiable":1,"hideWhenNoValue":0},{"guid":"74257c4e-069d-4914-a907-bfd24d52e229","name":"BEC_07_Filtrado","datatype":"YESNO","datacategory":"","group":7,"visible":1,"description":"Check que determina si el elemento se ha de filtrar en la medición","userModifiable":1,"hideWhenNoValue":0},{"guid":"2f2d864f-d5f8-4d02-8450-40c57dbd6fab","name":"BEC_03_AnchoAux01","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Parámetro Auxiliar polivalente de dimensiones","userModifiable":1,"hideWhenNoValue":0},{"guid":"53c1bd55-5c00-41c4-ac8f-3542118f185c","name":"BEC_03_Angulo","datatype":"ANGLE","datacategory":"","group":3,"visible":1,"description":"","userModifiable":1,"hideWhenNoValue":0},{"guid":"b30a8256-aa4e-42a6-9863-3fd4bb8ab7f5","name":"BEC_20_ifcCheckComments","datatype":"TEXT","datacategory":"","group":20,"visible":1,"description":"Copia editable del parámetro Hardcore de importación IFC: ifcCheckComments","userModifiable":1,"hideWhenNoValue":0},{"guid":"96d44e62-e165-4fb8-8416-c843e07a5b84","name":"BEC_15_Temperatura","datatype":"PIPING_TEMPERATURE","datacategory":"","group":15,"visible":1,"description":"Temperatura en tuberías","userModifiable":1,"hideWhenNoValue":0},{"guid":"c5316562-3d90-4bef-b8c6-c030facb18e9","name":"BEC_12_Resistencia","datatype":"TEXT","datacategory":"","group":12,"visible":1,"description":"Resistencia al Fuego del Elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"f85bc363-b81e-4094-ba0e-e1a7f7d52437","name":"BEC_10_HuellaDeCarbono","datatype":"TEXT","datacategory":"","group":10,"visible":1,"description":"CO2 elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"7fbb2365-2ac7-4cfc-b591-f25e8b2a764a","name":"BEC_20_ifcObjectTypeOverride","datatype":"TEXT","datacategory":"","group":20,"visible":1,"description":"Copia editable del parámetro Hardcore de importación IFC: ifcObjectTypeOverride","userModifiable":1,"hideWhenNoValue":0},{"guid":"a8a43266-e6d8-4529-85d6-cfb629364084","name":"BEC_07_Comentario","datatype":"TEXT","datacategory":"","group":7,"visible":1,"description":"Comentario relativo a la Medición del Elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"a71ae567-44e6-4f21-8cd6-db72d478e3c3","name":"BEC_01_PlanoCategoria","datatype":"TEXT","datacategory":"","group":1,"visible":1,"description":"Categoría Principal del Organizador de Planos","userModifiable":1,"hideWhenNoValue":0},{"guid":"d79cbd68-8542-4ed5-8216-487e1a1552ac","name":"BEC_20_ifcMaterial","datatype":"TEXT","datacategory":"","group":20,"visible":1,"description":"Copia editable del parámetro Hardcore de importación IFC: ifcMaterial","userModifiable":1,"hideWhenNoValue":0},{"guid":"ce12546c-b217-48be-990c-24cbbb824ea2","name":"BEC_03_Numero","datatype":"INTEGER","datacategory":"","group":3,"visible":1,"description":"","userModifiable":1,"hideWhenNoValue":0},{"guid":"323bdc6c-3a3d-4e8e-94af-ab57f27e5887","name":"BEC_03_AltoAux01","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Parámetro Auxiliar polivalente de dimensiones","userModifiable":1,"hideWhenNoValue":0},{"guid":"f6437373-47cb-426f-89ed-82846b79a617","name":"BEC_03_AnchoAux04","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"","userModifiable":1,"hideWhenNoValue":0},{"guid":"c7939f73-9c01-4efc-8121-708ea62fea03","name":"BEC_17_Peso","datatype":"MASS","datacategory":"","group":17,"visible":1,"description":"Peso","userModifiable":1,"hideWhenNoValue":0},{"guid":"035dd273-02d2-48a8-9f42-3c32bab0083a","name":"BEC_05_Nombre","datatype":"TEXT","datacategory":"","group":5,"visible":1,"description":"","userModifiable":1,"hideWhenNoValue":0},{"guid":"870cd573-26c2-48a2-afcd-0ac885bdfe82","name":"BEC_20_ifcGUID","datatype":"TEXT","datacategory":"","group":20,"visible":1,"description":"Copia editable del parámetro Hardcore de importación IFC: ifcGUID","userModifiable":1,"hideWhenNoValue":0},{"guid":"70451b74-8d36-4a80-a815-c893d51293df","name":"BEC_17_Caudal","datatype":"HVAC_AIR_FLOW","datacategory":"","group":17,"visible":1,"description":"Caudal","userModifiable":1,"hideWhenNoValue":0},{"guid":"ad6f2674-a679-4221-87b2-2efe79105c8f","name":"BEC_09_UbicacionVertical","datatype":"TEXT","datacategory":"","group":9,"visible":1,"description":"Parámetro de ubicacion de elemento bajo o sobre rasante","userModifiable":1,"hideWhenNoValue":0},{"guid":"447e7577-a436-408f-aff1-aba1f2101873","name":"BEC_20_ifcPresentationLayer","datatype":"TEXT","datacategory":"","group":20,"visible":1,"description":"Copia editable del parámetro Hardcore de importación IFC: ifcPresentationLayer","userModifiable":1,"hideWhenNoValue":0},{"guid":"e7bb007b-cb4f-4344-9807-8f6e67086f6b","name":"BEC_03_Volumen","datatype":"VOLUME","datacategory":"","group":3,"visible":1,"description":"Volumen del elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"8f5dea7e-8686-4b17-9867-eabad5e51269","name":"BEC_16_Protección IP","datatype":"TEXT","datacategory":"","group":16,"visible":1,"description":"Protección IP elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"02c68481-0291-4dc6-a8f4-8a1359103dfa","name":"BEC_16_PolosNumero","datatype":"NOOFPOLES","datacategory":"","group":16,"visible":1,"description":"Número de polos","userModifiable":1,"hideWhenNoValue":0},{"guid":"788cd284-7f29-44b7-9f86-17151f9aa023","name":"BEC_21_InterferenciaPrioridad","datatype":"TEXT","datacategory":"","group":21,"visible":1,"description":"Valor de prioridad, entre 01 y 05, de la interferencia","userModifiable":1,"hideWhenNoValue":0},{"guid":"8e620f85-00dd-4337-a9e8-403938f51f74","name":"BEC_20_IfcExportType_","datatype":"TEXT","datacategory":"","group":20,"visible":1,"description":"Asociado a la exportación a IFC a nivel de Elemento que especifica el IFC Type (TypeEnum)","userModifiable":1,"hideWhenNoValue":0},{"guid":"92ba0287-327e-418a-9bfc-2ccb690a8808","name":"BEC_04_DescripcionLarga","datatype":"TEXT","datacategory":"","group":4,"visible":1,"description":"Descripción Larga para Anotación","userModifiable":1,"hideWhenNoValue":0},{"guid":"e7832d89-19e5-4d82-9034-e2f039200588","name":"BEC_03_LongitudTotal","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Valor numérico de la Longitud Total del elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"17ea0f8b-7107-4016-b134-f14bd7d77e97","name":"BEC_16_PotenciaAparente","datatype":"ELECTRICAL_APPARENT_POWER","datacategory":"","group":16,"visible":1,"description":"Potencia Aparente","userModifiable":1,"hideWhenNoValue":0},{"guid":"34dba58c-e825-4a5e-b4d7-c9bce37c78db","name":"BEC_06_AcabadoExterior","datatype":"MATERIAL","datacategory":"","group":6,"visible":1,"description":"Material de Acabado Exterior del Elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"6ed8de8d-8817-4c82-8351-05169d22df56","name":"BEC_09_Zona","datatype":"TEXT","datacategory":"","group":9,"visible":1,"description":"Zona en la que esta ubicado el Elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"38bffc8d-3c70-4547-89d1-051398512897","name":"BEC_01_PlanoNivel","datatype":"TEXT","datacategory":"","group":1,"visible":1,"description":"Nivel al que pertenece el Plano","userModifiable":1,"hideWhenNoValue":0},{"guid":"228f5e8e-c93a-4b9f-a6cd-bb82fd2ecb16","name":"BEC_03_Ancho","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Valor numérico del Ancho Nominal","userModifiable":1,"hideWhenNoValue":0},{"guid":"a916e08f-2b20-4107-a02a-7f660abc3c52","name":"BEC_06_AcabadoAux01","datatype":"MATERIAL","datacategory":"","group":6,"visible":1,"description":"Material de Acabado auxiliar","userModifiable":1,"hideWhenNoValue":0},{"guid":"0d483d92-516b-43cc-99fd-37f519c77264","name":"BEC_11_Tirador","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Tirador de la carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"1e44e493-e725-4236-9fea-2fa7ac5fb542","name":"BEC_05_GuidTipo","datatype":"TEXT","datacategory":"","group":5,"visible":1,"description":"","userModifiable":1,"hideWhenNoValue":0},{"guid":"d503fb96-16f3-4acd-913b-4cdc4b8fb55a","name":"BEC_09_Nivel","datatype":"TEXT","datacategory":"","group":9,"visible":1,"description":"Nivel en el que esta ubicado el Elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"b48f9f98-e640-4325-958d-361b57885200","name":"BEC_20_ifcDescription","datatype":"TEXT","datacategory":"","group":20,"visible":1,"description":"Copia editable del parámetro Hardcore de importación IFC: ifcDescription","userModifiable":1,"hideWhenNoValue":0},{"guid":"5ec90799-82dd-4ee9-8b80-8ce794be4e60","name":"BEC_03_Peso","datatype":"MASS","datacategory":"","group":3,"visible":1,"description":"Peso del elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"ecd3b399-60d5-4146-bdda-6355f97ed2f8","name":"BEC_21_InterferenciaEstado","datatype":"TEXT","datacategory":"","group":21,"visible":1,"description":"Descripción del estado de la interferencia: Activa, Resuelta, Cerrada, Pendiente Aprobación","userModifiable":1,"hideWhenNoValue":0},{"guid":"355ec399-ec81-4495-9662-e6035719bb59","name":"BEC_10_Sensorizacion","datatype":"TEXT","datacategory":"","group":10,"visible":1,"description":"Descripcion sensorizado del elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"9a203b9a-2b04-4406-bb48-a7ba410677ca","name":"BEC_03_Diametro","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Diámetro del cualquier elemento con cualquier geometria","userModifiable":1,"hideWhenNoValue":0},{"guid":"07ec229b-5869-4144-97da-940a4e7727bc","name":"BEC_21_InterferenciaSi","datatype":"YESNO","datacategory":"","group":21,"visible":1,"description":"Check que determina si existe una interferencia asociada a este elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"65aa919b-fd98-4129-95c8-10447604a617","name":"BEC_10_URL","datatype":"URL","datacategory":"","group":10,"visible":1,"description":"URL elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"7032679c-7f04-4261-9738-c496ba3760a5","name":"BEC_09_AreaPrincipal","datatype":"TEXT","datacategory":"","group":9,"visible":1,"description":"Área Principal de ubicación del Elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"3af46a9c-98f9-4835-b3cd-ff6e9ed1d668","name":"BEC_06_Aislamiento","datatype":"MATERIAL","datacategory":"","group":6,"visible":1,"description":"Material del Aislamiento del Elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"aa75269e-87d1-4963-8403-d909441163bc","name":"BEC_11_Equipo","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Equipo de la Carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"3da2129f-b317-418d-9956-66d4f8a6fbdb","name":"BEC_06_Estructura","datatype":"MATERIAL","datacategory":"","group":6,"visible":1,"description":"Material de la Estructura del Elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"da5a25a4-c812-4fe9-bf37-8ae82dffb87b","name":"BEC_10_PlazoMontaje","datatype":"TEXT","datacategory":"","group":10,"visible":1,"description":"El plazo para instalar el elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"ad2646a5-a048-4d2c-9e4e-d8fd1a895121","name":"BEC_03_Longitud","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Valor numérico del Largo Nominal ","userModifiable":1,"hideWhenNoValue":0},{"guid":"5bbab4a7-3faa-4ad3-b4a1-5ef389323f2c","name":"BEC_20_ifcExportAs","datatype":"TEXT","datacategory":"","group":20,"visible":1,"description":"Copia editable del parámetro Hardcore de importación IFC: ifcExportAs","userModifiable":1,"hideWhenNoValue":0},{"guid":"4ee1caa7-60f7-46b6-9652-24f8da5715b8","name":"BEC_07_Instalado","datatype":"YESNO","datacategory":"","group":7,"visible":1,"description":"Check de instalación del elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"72627ca8-5426-4f7f-a39b-1f3d61102cdd","name":"BEC_05_Tipo","datatype":"TEXT","datacategory":"","group":5,"visible":1,"description":"Descripción de Tipo asociado a la identificación del elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"01b2e3a8-9bd3-43aa-9bd4-4f6b308358aa","name":"BEC_12_EvacuacionDistancia","datatype":"NUMBER","datacategory":"","group":12,"visible":1,"description":"Distancia de evacuación actual de un recorrido","userModifiable":1,"hideWhenNoValue":0},{"guid":"c66ea4a9-d2fe-4203-83fc-0fa3e64e7db9","name":"BEC_03_AnchoTotal","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Valor numérico del Ancho Total del elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"c931f4a9-9d99-4eb5-b3b0-b9dca8cf00b4","name":"BEC_09_AreaSecundaria","datatype":"TEXT","datacategory":"","group":9,"visible":1,"description":"Área Secundaria (Incluida en la Principal) de ubicación del Elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"2bc155aa-b8c4-42c9-a6e6-d6f0b8d1d0ea","name":"BEC_07_Comprobado","datatype":"YESNO","datacategory":"","group":7,"visible":1,"description":"Check de Revisión de Medición","userModifiable":1,"hideWhenNoValue":0},{"guid":"6d0fe6ab-9e25-4244-8d5c-2d156a8d631c","name":"BEC_03_Desfase","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"","userModifiable":1,"hideWhenNoValue":0},{"guid":"7cefdcb1-2659-4ede-975c-156d0898453a","name":"BEC_01_ArchivoNombre","datatype":"TEXT","datacategory":"","group":1,"visible":1,"description":"Origen nombre de archivo de Planos","userModifiable":1,"hideWhenNoValue":0},{"guid":"e979a5b3-5359-44b4-ad70-950f4a9db3f6","name":"BEC_08_LODObjetivo","datatype":"TEXT","datacategory":"","group":8,"visible":1,"description":"LOD Objetivo a Alcanzar","userModifiable":1,"hideWhenNoValue":0},{"guid":"0b16e8b6-8eff-47de-9902-57ab63c80fcb","name":"BEC_03_DiametroAux01","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Parámetro Auxiliar polivalente de diámetro","userModifiable":1,"hideWhenNoValue":0},{"guid":"f500e0ba-b2b1-4835-9752-0c0ae75bfb5f","name":"BEC_10_Instrucciones","datatype":"TEXT","datacategory":"","group":10,"visible":1,"description":"Instrucciones para el elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"f3bffeba-575e-48d0-bab8-89d746ad7085","name":"BEC_16_PotenciaElectrica","datatype":"ELECTRICAL_POWER","datacategory":"","group":16,"visible":1,"description":"Potencia Electrica","userModifiable":1,"hideWhenNoValue":0},{"guid":"2c86f6bd-ddba-4ee9-a500-8b19cb4c9792","name":"BEC_11_Accesorios","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Accesorios de la Carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"8e3c7bc3-9ed0-4586-b6a2-4b329ea90fe2","name":"BEC_11_Vidrio","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Nombre del Vidrio de la Carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"886a2ec4-125b-4bce-96bc-19e527c423d9","name":"BEC_09_Ubicacion","datatype":"TEXT","datacategory":"","group":9,"visible":1,"description":"Parámetro de ubicacion de elemento (colector colgado o enterrado)","userModifiable":1,"hideWhenNoValue":0},{"guid":"dc7a3ac4-f810-4605-8545-1ce0e165cd5a","name":"BEC_21_InterferenciaDescripcion","datatype":"TEXT","datacategory":"","group":21,"visible":1,"description":"Descripción textual asociada a la interferencia","userModifiable":1,"hideWhenNoValue":0},{"guid":"2abc1bcb-3210-40df-8a49-e5d8b9a20b2b","name":"BEC_16_Voltaje","datatype":"ELECTRICAL_POTENTIAL","datacategory":"","group":16,"visible":1,"description":"Voltaje","userModifiable":1,"hideWhenNoValue":0},{"guid":"e06cc2cb-f5a4-471d-8709-dfde90774ef7","name":"BEC_06_Acabado","datatype":"MATERIAL","datacategory":"","group":6,"visible":1,"description":"Material de Acabado en General del Elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"45b655d0-642e-4273-9288-e9cd6f36d95c","name":"BEC_06_AcabadoInterior","datatype":"MATERIAL","datacategory":"","group":6,"visible":1,"description":"Material de Acabado Interior del Elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"c93f7ed2-5dca-46b8-ad10-22bd50698f34","name":"BEC_03_DiametroAux03","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"","userModifiable":1,"hideWhenNoValue":0},{"guid":"69852cd8-e30f-43b2-bc7c-bc590e5ff7ef","name":"BEC_01_PlanoZona","datatype":"TEXT","datacategory":"","group":1,"visible":1,"description":"Zona a la que pertenece el Plano","userModifiable":1,"hideWhenNoValue":0},{"guid":"82508dd9-27ff-4b75-af80-0de25a8797b0","name":"BEC_03_Alto","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Valor numérico del Alto Nominal","userModifiable":1,"hideWhenNoValue":0},{"guid":"b4ad52da-892b-47b4-b80e-641a4158a1b8","name":"BEC_20_ifcPropertySetList","datatype":"TEXT","datacategory":"","group":20,"visible":1,"description":"Copia editable del parámetro Hardcore de importación IFC: ifcPropertySetList","userModifiable":1,"hideWhenNoValue":0},{"guid":"8a6b38dd-a037-4ad4-b869-fbffce95dbc5","name":"BEC_04_DescripcionCorta","datatype":"TEXT","datacategory":"","group":4,"visible":1,"description":"Descripción Corta para Anotación","userModifiable":1,"hideWhenNoValue":0},{"guid":"673d02de-dc01-49d7-840d-b88880f1c4d0","name":"BEC_10_Proveedor","datatype":"TEXT","datacategory":"","group":10,"visible":1,"description":"Nombre proveedor","userModifiable":1,"hideWhenNoValue":0},{"guid":"9c3df8e0-0d39-445c-9f80-f19470d6d4f2","name":"BEC_03_AltoTotal","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"Valor numérico del Alto Total del elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"f577f6e3-814d-4f05-9db9-5e91a9e432c3","name":"BEC_02_URL","datatype":"URL","datacategory":"","group":2,"visible":1,"description":"URL","userModifiable":1,"hideWhenNoValue":0},{"guid":"3ae13de6-3b2b-4c0f-8180-627fe76b61cd","name":"BEC_20_IfcExportAs_","datatype":"TEXT","datacategory":"","group":20,"visible":1,"description":"Asociado a la exportación a IFC a nivel de Elemento que especifica el IFC Class Name","userModifiable":1,"hideWhenNoValue":0},{"guid":"238760e6-2047-4862-8e54-e968eddb68eb","name":"BEC_04_Nombre","datatype":"TEXT","datacategory":"","group":4,"visible":1,"description":"Nombre para Anotación","userModifiable":1,"hideWhenNoValue":0},{"guid":"64718fe9-cbf4-4a61-885a-004354dc4e63","name":"BEC_12_SectorNombre","datatype":"TEXT","datacategory":"","group":12,"visible":1,"description":"Nombre del sector de incendios","userModifiable":1,"hideWhenNoValue":0},{"guid":"1a22cbef-377d-4085-908e-72f3ab5cc1cf","name":"BEC_11_Antipanico","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Barra antipánico de la carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"0091bbf0-a8c0-4d8c-9570-1965db50f231","name":"BEC_03_DiametroAux04","datatype":"LENGTH","datacategory":"","group":3,"visible":1,"description":"","userModifiable":1,"hideWhenNoValue":0},{"guid":"8f4152f1-6a71-4217-b93d-2a62556bba01","name":"BEC_11_MarcoDescripcion","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Descripción del Marco de la Carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"59e46af2-c6fe-4794-916c-332738959dec","name":"BEC_11_VidrioDescripcion","datatype":"TEXT","datacategory":"","group":11,"visible":1,"description":"Descripción del Vidrio de la Carpintería","userModifiable":1,"hideWhenNoValue":0},{"guid":"9052fefa-70d7-444c-83cd-6365555f0d7c","name":"BEC_15_Caudal","datatype":"PIPING_FLOW","datacategory":"","group":15,"visible":1,"description":"Caudal de tuberías","userModifiable":1,"hideWhenNoValue":0},{"guid":"fb20fafb-fdb4-485a-898f-043410e3e7a2","name":"BEC_PLA_Tarea","datatype":"TEXT","datacategory":"","group":13,"visible":1,"description":"Tarea Principal asociada al elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"70420afc-38be-4ddd-b3bf-33a8c5ffcdab","name":"BEC_PLA_TareaCompletada","datatype":"YESNO","datacategory":"","group":13,"visible":1,"description":"Check de estado finalizado o no de la tarea asociada al elemento","userModifiable":1,"hideWhenNoValue":0},{"guid":"fbc2a2fc-177e-4b53-9053-bd5fd1833d90","name":"BEC_PLA_TareaNumero","datatype":"TEXT","datacategory":"","group":13,"visible":1,"description":"Número de la tarea asociada al elemento","userModifiable":1,"hideWhenNoValue":0}]};
+
+// ---------- Catálogo de tipos de datos (Revit) ----------
+const DATATYPES = [
+  {group:"Texto", items:["TEXT","MULTILINETEXT","URL"]},
+  {group:"Numérico", items:["INTEGER","NUMBER","YESNO"]},
+  {group:"Geometría", items:["LENGTH","AREA","VOLUME","ANGLE","SLOPE"]},
+  {group:"Físico", items:["MASS","MASS_DENSITY","FORCE","LINEAR_FORCE","AREA_FORCE","MOMENT","STRESS","SPEED","ROTATION","BAR_DIAMETER","CURRENCY"]},
+  {group:"Material/Imagen", items:["MATERIAL","IMAGE","FILL_PATTERN"]},
+  {group:"Eléctrico", items:["ELECTRICAL_CURRENT","ELECTRICAL_POTENTIAL","ELECTRICAL_POWER","ELECTRICAL_APPARENT_POWER","ELECTRICAL_FREQUENCY","ELECTRICAL_ILLUMINANCE","ELECTRICAL_LUMINOUS_FLUX","ELECTRICAL_LUMINOUS_INTENSITY","NOOFPOLES","WATTAGE"]},
+  {group:"HVAC", items:["HVAC_AIR_FLOW","HVAC_TEMPERATURE","HVAC_PRESSURE","HVAC_VELOCITY","HVAC_POWER","HVAC_ROUGHNESS","HVAC_DUCT_SIZE","HVAC_COOLING_LOAD","HVAC_HEATING_LOAD","HVAC_ENERGY"]},
+  {group:"Fontanería", items:["PIPING_FLOW","PIPING_PRESSURE","PIPING_TEMPERATURE","PIPING_VELOCITY","PIPING_DENSITY","PIPING_VISCOSITY","PIPING_ROUGHNESS","PIPING_VOLUME"]}
+];
+const DATATYPE_FLAT = DATATYPES.flatMap(g => g.items);
+
+// ---------- Mapa para colorear chips de tipo ----------
+function chipClass(dt){
+  if(dt==="TEXT"||dt==="MULTILINETEXT") return "t-text";
+  if(dt==="URL") return "t-url";
+  if(dt==="YESNO") return "t-bool";
+  if(dt==="INTEGER"||dt==="NUMBER") return "t-num";
+  if(dt==="LENGTH"||dt==="AREA"||dt==="VOLUME"||dt==="ANGLE"||dt==="SLOPE"||dt==="MASS"||dt==="ROTATION") return "t-len";
+  if(dt==="MATERIAL"||dt==="IMAGE"||dt==="FILL_PATTERN") return "t-mat";
+  if(dt.startsWith("ELECTRICAL_")||dt.startsWith("HVAC_")||dt.startsWith("PIPING_")||dt==="NOOFPOLES"||dt==="WATTAGE") return "t-mep";
+  return "";
+}
+
+// ---------- Estado global ----------
+const STORAGE_KEY = "becsa_shared_params_v1";
+let state = loadState();
+let ui = {
+  activeGroup: "all",   // "all" o id numérico
+  search: "",
+  filterType: "",
+  sortKey: "name",
+  sortDir: "asc",
+  editingParam: null,   // guid o null
+  editingGroup: null,   // id o null
+  confirmAction: null   // function
+};
+
+function loadState(){
+  try{
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if(saved){ return JSON.parse(saved); }
+  }catch(e){}
+  return JSON.parse(JSON.stringify(INITIAL_DATA));
+}
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    setSaveStatus("Guardado " + new Date().toLocaleTimeString("es-ES"));
+  }catch(e){
+    setSaveStatus("Error al guardar localmente", true);
+  }
+}
+function setSaveStatus(msg, err){
+  const el = document.getElementById("save-status");
+  el.textContent = msg;
+  el.style.color = err ? "var(--danger)" : "var(--muted)";
+}
+
+// ---------- UUID v4 ----------
+function uuidv4(){
+  if(crypto && crypto.randomUUID){ return crypto.randomUUID(); }
+  // Fallback
+  const a = new Uint8Array(16);
+  crypto.getRandomValues(a);
+  a[6] = (a[6] & 0x0f) | 0x40;
+  a[8] = (a[8] & 0x3f) | 0x80;
+  const hex = [...a].map(b => b.toString(16).padStart(2,"0"));
+  return `${hex.slice(0,4).join("")}-${hex.slice(4,6).join("")}-${hex.slice(6,8).join("")}-${hex.slice(8,10).join("")}-${hex.slice(10,16).join("")}`;
+}
+
+// ---------- Render: estadísticas ----------
+function renderStats(){
+  document.getElementById("stat-version").textContent = state.meta.version + "." + state.meta.minVersion;
+  document.getElementById("stat-params").textContent = state.params.length;
+  document.getElementById("stat-groups").textContent = state.groups.length;
+}
+
+// ---------- Render: sidebar de grupos ----------
+function renderGroups(){
+  const list = document.getElementById("group-list");
+  const counts = {};
+  state.params.forEach(p => { counts[p.group] = (counts[p.group]||0) + 1; });
+  const totalCount = state.params.length;
+
+  let html = '';
+  html += `<div class="group-item all-item ${ui.activeGroup==='all'?'active':''}" data-gid="all">
+    <span class="group-name">Todos los parámetros</span>
+    <span class="group-count">${totalCount}</span>
+  </div>`;
+
+  // ordenar grupos por id numérico
+  const sortedGroups = [...state.groups].sort((a,b) => a.id - b.id);
+  for(const g of sortedGroups){
+    const cnt = counts[g.id] || 0;
+    const active = ui.activeGroup === g.id ? "active" : "";
+    html += `<div class="group-item ${active}" data-gid="${g.id}">
+      <span class="group-name" title="${escapeHtml(g.name)}">${escapeHtml(g.name)}</span>
+      <span class="group-count">${cnt}</span>
+      <span class="group-actions">
+        <button data-act="edit-group" data-gid="${g.id}" title="Renombrar">✎</button>
+        <button class="del" data-act="del-group" data-gid="${g.id}" title="Eliminar">×</button>
+      </span>
+    </div>`;
+  }
+  list.innerHTML = html;
+}
+
+// ---------- Render: tabla de parámetros ----------
+function renderParams(){
+  // Filtrar
+  let rows = state.params.slice();
+  if(ui.activeGroup !== "all"){
+    rows = rows.filter(p => p.group === ui.activeGroup);
+  }
+  if(ui.filterType){
+    rows = rows.filter(p => p.datatype === ui.filterType);
+  }
+  if(ui.search){
+    const q = ui.search.toLowerCase();
+    rows = rows.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      p.guid.toLowerCase().includes(q) ||
+      (p.description && p.description.toLowerCase().includes(q))
+    );
+  }
+  // Ordenar
+  const dir = ui.sortDir === "asc" ? 1 : -1;
+  rows.sort((a,b) => {
+    let va = a[ui.sortKey], vb = b[ui.sortKey];
+    if(typeof va === "string"){ va = va.toLowerCase(); vb = (vb||"").toLowerCase(); }
+    if(va < vb) return -1*dir;
+    if(va > vb) return 1*dir;
+    return 0;
+  });
+
+  const groupName = id => {
+    const g = state.groups.find(x => x.id === id);
+    return g ? g.name : "—";
+  };
+
+  const tbody = document.getElementById("params-body");
+  const empty = document.getElementById("empty-state");
+
+  if(rows.length === 0){
+    tbody.innerHTML = "";
+    empty.style.display = "block";
+  } else {
+    empty.style.display = "none";
+    tbody.innerHTML = rows.map(p => `
+      <tr data-guid="${p.guid}">
+        <td class="name">${escapeHtml(p.name)}</td>
+        <td><span class="chip ${chipClass(p.datatype)}">${escapeHtml(p.datatype)}</span></td>
+        <td class="group-cell">${escapeHtml(groupName(p.group))}</td>
+        <td class="desc" title="${escapeHtml(p.description||'')}">${escapeHtml(p.description||'—')}</td>
+        <td class="guid" data-act="copy-guid" data-guid="${p.guid}" title="Click para copiar">${p.guid.substring(0,8)}…${p.guid.substring(p.guid.length-4)}</td>
+        <td class="actions"><span class="row-acts">
+          <button data-act="edit-param" data-guid="${p.guid}" title="Editar">✎</button>
+          <button class="del" data-act="del-param" data-guid="${p.guid}" title="Eliminar">🗑</button>
+        </span></td>
+      </tr>
+    `).join("");
+  }
+
+  // Título contextual
+  const title = ui.activeGroup === "all"
+    ? "Todos los parámetros"
+    : (state.groups.find(g => g.id === ui.activeGroup)?.name || "Grupo");
+  document.getElementById("content-title").textContent = title;
+  const visibleCount = rows.length;
+  const totalForGroup = ui.activeGroup === "all" ? state.params.length : state.params.filter(p => p.group === ui.activeGroup).length;
+  document.getElementById("content-sub").textContent = visibleCount === totalForGroup
+    ? `${visibleCount} parámetros`
+    : `${visibleCount} de ${totalForGroup} parámetros`;
+
+  // Indicadores de orden
+  document.querySelectorAll(".sort-ind").forEach(el => el.textContent = "");
+  const indEl = document.querySelector(`.sort-ind[data-ind="${ui.sortKey}"]`);
+  if(indEl) indEl.textContent = ui.sortDir === "asc" ? "▲" : "▼";
+}
+
+// ---------- Render: opciones de filtro tipo ----------
+function renderTypeFilter(){
+  const sel = document.getElementById("filter-type");
+  const presentTypes = [...new Set(state.params.map(p => p.datatype))].sort();
+  const prev = ui.filterType;
+  sel.innerHTML = '<option value="">Todos los tipos (' + state.params.length + ')</option>' +
+    presentTypes.map(t => {
+      const c = state.params.filter(p => p.datatype === t).length;
+      return `<option value="${t}" ${t===prev?"selected":""}>${t} (${c})</option>`;
+    }).join("");
+}
+
+// ---------- Render combinado ----------
+function render(){
+  renderStats();
+  renderGroups();
+  renderTypeFilter();
+  renderParams();
+}
+
+// ---------- Prefijo automático BEC_NN_ según grupo ----------
+function groupPrefix(groupId){
+  const n = parseInt(groupId, 10);
+  if(!n || n <= 0) return "BEC_";
+  return "BEC_" + String(n).padStart(2, "0") + "_";
+}
+// Dado un nombre completo, separa el prefijo BEC_NN_ (si existe) del resto
+function splitPrefix(fullName){
+  const m = /^BEC_(\d{2})_(.*)$/.exec(fullName || "");
+  if(m) return { prefix: "BEC_" + m[1] + "_", suffix: m[2] };
+  return { prefix: "", suffix: fullName || "" };
+}
+// Recalcula el campo nombre cuando cambia el grupo seleccionado, preservando lo escrito
+function syncNamePrefix(){
+  const nameInput = document.getElementById("p-name");
+  const groupId = document.getElementById("p-group").value;
+  const newPrefix = groupPrefix(groupId);
+  const { suffix } = splitPrefix(nameInput.value);
+  nameInput.value = newPrefix + suffix;
+}
+
+// ---------- Modal: parámetro ----------
+function openParamModal(guid){
+  ui.editingParam = guid || null;
+  const modal = document.getElementById("modal-param");
+  document.getElementById("param-modal-title").textContent = guid ? "Editar parámetro" : "Nuevo parámetro";
+  document.getElementById("param-err").classList.remove("show");
+
+  // Populate datatype select
+  const dtSel = document.getElementById("p-datatype");
+  dtSel.innerHTML = DATATYPES.map(g =>
+    `<optgroup label="${g.group}">${g.items.map(t => `<option value="${t}">${t}</option>`).join("")}</optgroup>`
+  ).join("");
+
+  // Populate group select
+  const grpSel = document.getElementById("p-group");
+  grpSel.innerHTML = [...state.groups].sort((a,b)=>a.id-b.id).map(g =>
+    `<option value="${g.id}">${escapeHtml(g.name)}</option>`
+  ).join("");
+
+  if(guid){
+    const p = state.params.find(x => x.guid === guid);
+    document.getElementById("p-name").value = p.name;
+    document.getElementById("p-datatype").value = p.datatype;
+    document.getElementById("p-group").value = p.group;
+    document.getElementById("p-description").value = p.description || "";
+    document.getElementById("p-guid").value = p.guid;
+    document.getElementById("p-visible").checked = p.visible === 1;
+    document.getElementById("p-usermod").checked = p.userModifiable === 1;
+    document.getElementById("p-hide").checked = p.hideWhenNoValue === 1;
+  } else {
+    document.getElementById("p-datatype").value = "TEXT";
+    // Si hay grupo activo, preseleccionarlo; si no, el primero de la lista
+    const defaultGroup = ui.activeGroup !== "all" ? ui.activeGroup : (state.groups[0] ? state.groups.slice().sort((a,b)=>a.id-b.id)[0].id : "");
+    if(defaultGroup !== ""){ document.getElementById("p-group").value = defaultGroup; }
+    document.getElementById("p-name").value = groupPrefix(document.getElementById("p-group").value);
+    document.getElementById("p-description").value = "";
+    document.getElementById("p-guid").value = uuidv4();
+    document.getElementById("p-visible").checked = true;
+    document.getElementById("p-usermod").checked = true;
+    document.getElementById("p-hide").checked = false;
+  }
+  modal.classList.add("open");
+  setTimeout(() => {
+    const nameInput = document.getElementById("p-name");
+    nameInput.focus();
+    nameInput.setSelectionRange(nameInput.value.length, nameInput.value.length);
+  }, 50);
+}
+
+function saveParam(){
+  const name = document.getElementById("p-name").value.trim();
+  const datatype = document.getElementById("p-datatype").value;
+  const group = parseInt(document.getElementById("p-group").value, 10);
+  const description = document.getElementById("p-description").value.trim();
+  const guid = document.getElementById("p-guid").value.trim().toLowerCase();
+  const visible = document.getElementById("p-visible").checked ? 1 : 0;
+  const userModifiable = document.getElementById("p-usermod").checked ? 1 : 0;
+  const hideWhenNoValue = document.getElementById("p-hide").checked ? 1 : 0;
+
+  const err = document.getElementById("param-err");
+  err.classList.remove("show");
+
+  if(!name){ return showErr(err, "El nombre es obligatorio."); }
+  if(name.includes("\t")){ return showErr(err, "El nombre no puede contener tabuladores."); }
+  if(!datatype){ return showErr(err, "El tipo de dato es obligatorio."); }
+  if(!group){ return showErr(err, "El grupo es obligatorio."); }
+  const guidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+  if(!guidRe.test(guid)){ return showErr(err, "El GUID no tiene formato válido (8-4-4-4-12, hex)."); }
+  // Duplicados
+  const dup = state.params.find(p => p.guid === guid && p.guid !== ui.editingParam);
+  if(dup){ return showErr(err, "Ya existe un parámetro con ese GUID: " + dup.name); }
+  const dupName = state.params.find(p => p.name === name && p.guid !== ui.editingParam);
+  if(dupName){ return showErr(err, "Ya existe un parámetro con ese nombre: " + dupName.guid); }
+
+  if(ui.editingParam){
+    const idx = state.params.findIndex(p => p.guid === ui.editingParam);
+    state.params[idx] = { guid, name, datatype, datacategory:"", group, visible, description, userModifiable, hideWhenNoValue };
+    toast("Parámetro actualizado", "ok");
+  } else {
+    state.params.push({ guid, name, datatype, datacategory:"", group, visible, description, userModifiable, hideWhenNoValue });
+    toast("Parámetro creado", "ok");
+  }
+  saveState();
+  closeModals();
+  render();
+}
+
+// ---------- Modal: grupo ----------
+function openGroupModal(gid){
+  ui.editingGroup = gid || null;
+  const modal = document.getElementById("modal-group");
+  document.getElementById("group-modal-title").textContent = gid ? "Renombrar grupo" : "Nuevo grupo";
+  document.getElementById("group-err").classList.remove("show");
+
+  if(gid){
+    const g = state.groups.find(x => x.id === gid);
+    document.getElementById("g-id").value = g.id;
+    document.getElementById("g-id").disabled = true;  // ID no editable al renombrar
+    document.getElementById("g-name").value = g.name;
+    document.getElementById("g-id-suggest").textContent = g.id;
+  } else {
+    const maxId = state.groups.reduce((m,g) => Math.max(m, g.id), 0);
+    document.getElementById("g-id").value = maxId + 1;
+    document.getElementById("g-id").disabled = false;
+    document.getElementById("g-name").value = "";
+    document.getElementById("g-id-suggest").textContent = maxId + 1;
+  }
+  modal.classList.add("open");
+  setTimeout(() => document.getElementById("g-name").focus(), 50);
+}
+function saveGroup(){
+  const idRaw = document.getElementById("g-id").value.trim();
+  const name = document.getElementById("g-name").value.trim();
+  const err = document.getElementById("group-err");
+  err.classList.remove("show");
+
+  const id = parseInt(idRaw, 10);
+  if(!Number.isInteger(id) || id <= 0){ return showErr(err, "El ID debe ser un entero positivo."); }
+  if(!name){ return showErr(err, "El nombre es obligatorio."); }
+  if(name.includes("\t")){ return showErr(err, "El nombre no puede contener tabuladores."); }
+
+  if(ui.editingGroup){
+    const idx = state.groups.findIndex(g => g.id === ui.editingGroup);
+    state.groups[idx].name = name;
+    toast("Grupo renombrado", "ok");
+  } else {
+    if(state.groups.some(g => g.id === id)){
+      return showErr(err, "Ya existe un grupo con ID " + id + ".");
+    }
+    state.groups.push({ id, name });
+    toast("Grupo creado", "ok");
+  }
+  saveState();
+  closeModals();
+  render();
+}
+
+// ---------- Confirm ----------
+function openConfirm(title, msg, extraHtml, btnLabel, onYes){
+  document.getElementById("confirm-title").textContent = title;
+  document.getElementById("confirm-msg").innerHTML = msg;
+  document.getElementById("confirm-extra").innerHTML = extraHtml || "";
+  document.getElementById("confirm-yes-btn").textContent = btnLabel || "Eliminar";
+  ui.confirmAction = onYes;
+  document.getElementById("modal-confirm").classList.add("open");
+}
+
+// ---------- Acciones grupo ----------
+function deleteGroup(gid){
+  const g = state.groups.find(x => x.id === gid);
+  const used = state.params.filter(p => p.group === gid);
+  if(used.length > 0){
+    const sel = `<div class="field" style="margin-top:8px"><label>Mover sus ${used.length} parámetros a:</label>
+      <select id="reassign-group">${state.groups.filter(x => x.id !== gid).sort((a,b)=>a.id-b.id).map(x => `<option value="${x.id}">${escapeHtml(x.name)}</option>`).join("")}</select>
+    </div>`;
+    openConfirm(
+      "Eliminar grupo",
+      `El grupo <b>${escapeHtml(g.name)}</b> contiene ${used.length} parámetros. Selecciona a qué grupo moverlos antes de eliminar.`,
+      sel, "Mover y eliminar",
+      () => {
+        const target = parseInt(document.getElementById("reassign-group").value, 10);
+        state.params.forEach(p => { if(p.group === gid) p.group = target; });
+        state.groups = state.groups.filter(x => x.id !== gid);
+        if(ui.activeGroup === gid) ui.activeGroup = "all";
+        saveState(); render(); toast("Grupo eliminado y parámetros reasignados", "ok");
+      }
+    );
+  } else {
+    openConfirm(
+      "Eliminar grupo",
+      `¿Eliminar el grupo <b>${escapeHtml(g.name)}</b>? Está vacío, no afecta a ningún parámetro.`,
+      "", "Eliminar",
+      () => {
+        state.groups = state.groups.filter(x => x.id !== gid);
+        if(ui.activeGroup === gid) ui.activeGroup = "all";
+        saveState(); render(); toast("Grupo eliminado", "ok");
+      }
+    );
+  }
+}
+function deleteParam(guid){
+  const p = state.params.find(x => x.guid === guid);
+  openConfirm(
+    "Eliminar parámetro",
+    `¿Eliminar el parámetro <b>${escapeHtml(p.name)}</b>?<br>Esta acción no se puede deshacer en este editor (pero el archivo original sigue intacto en tu disco).`,
+    "", "Eliminar",
+    () => {
+      state.params = state.params.filter(x => x.guid !== guid);
+      saveState(); render(); toast("Parámetro eliminado", "ok");
+    }
+  );
+}
+
+// ---------- Import / Export ----------
+function exportTxt(){
+  const lines = [];
+  lines.push("# This is a Revit shared parameter file. Do not edit manually.");
+  lines.push("*META\tVERSION\tMINVERSION");
+  lines.push(`META\t${state.meta.version}\t${state.meta.minVersion}`);
+  lines.push("*GROUP\tID\tNAME");
+  [...state.groups].sort((a,b)=>a.id-b.id).forEach(g => {
+    lines.push(`GROUP\t${g.id}\t${g.name}`);
+  });
+  lines.push("*PARAM\tGUID\tNAME\tDATATYPE\tDATACATEGORY\tGROUP\tVISIBLE\tDESCRIPTION\tUSERMODIFIABLE\tHIDEWHENNOVALUE");
+  state.params.forEach(p => {
+    lines.push(`PARAM\t${p.guid}\t${p.name}\t${p.datatype}\t${p.datacategory||""}\t${p.group}\t${p.visible}\t${p.description||""}\t${p.userModifiable}\t${p.hideWhenNoValue}`);
+  });
+  const text = lines.join("\r\n") + "\r\n";
+
+  // Codificar a UTF-16 LE con BOM
+  const bom = [0xFF, 0xFE];
+  const buf = new Uint8Array(2 + text.length * 2);
+  buf[0] = bom[0]; buf[1] = bom[1];
+  for(let i = 0; i < text.length; i++){
+    const code = text.charCodeAt(i);
+    buf[2 + i*2] = code & 0xFF;
+    buf[2 + i*2 + 1] = (code >> 8) & 0xFF;
+  }
+  const blob = new Blob([buf], {type: "text/plain;charset=utf-16le"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const ts = new Date().toISOString().slice(0,10).replace(/-/g,"");
+  a.href = url;
+  a.download = `BEC_ParametrosCompartidos_${ts}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast("Archivo exportado en formato Revit (UTF-16 LE, CRLF)", "ok");
+}
+
+function importTxt(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    const buf = new Uint8Array(e.target.result);
+    let text;
+    // Detectar BOM
+    if(buf.length >= 2 && buf[0] === 0xFF && buf[1] === 0xFE){
+      text = new TextDecoder("utf-16le").decode(buf.subarray(2));
+    } else if(buf.length >= 2 && buf[0] === 0xFE && buf[1] === 0xFF){
+      text = new TextDecoder("utf-16be").decode(buf.subarray(2));
+    } else if(buf.length >= 3 && buf[0] === 0xEF && buf[1] === 0xBB && buf[2] === 0xBF){
+      text = new TextDecoder("utf-8").decode(buf.subarray(3));
+    } else {
+      // Intentar utf-16le primero (lo más común en Revit)
+      const t1 = new TextDecoder("utf-16le").decode(buf);
+      if(t1.includes("META") && t1.includes("PARAM")){ text = t1; }
+      else { text = new TextDecoder("utf-8").decode(buf); }
+    }
+    try{
+      const parsed = parseRevitTxt(text);
+      state = parsed;
+      ui.activeGroup = "all";
+      saveState(); render();
+      toast(`Importado: ${state.groups.length} grupos, ${state.params.length} parámetros`, "ok");
+    }catch(err){
+      toast("Error al parsear: " + err.message, "err");
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseRevitTxt(text){
+  const lines = text.split(/\r?\n/);
+  const meta = {version:"2", minVersion:"1"};
+  const groups = [];
+  const params = [];
+  for(const raw of lines){
+    if(!raw || raw.startsWith("#") || raw.startsWith("*")) continue;
+    const parts = raw.split("\t");
+    if(parts[0] === "META" && parts.length >= 3){
+      meta.version = parts[1]; meta.minVersion = parts[2];
+    } else if(parts[0] === "GROUP" && parts.length >= 3){
+      groups.push({ id: parseInt(parts[1],10), name: parts[2] });
+    } else if(parts[0] === "PARAM" && parts.length >= 10){
+      params.push({
+        guid: parts[1], name: parts[2], datatype: parts[3], datacategory: parts[4],
+        group: parseInt(parts[5],10) || 0,
+        visible: parseInt(parts[6],10) || 0,
+        description: parts[7] || "",
+        userModifiable: parseInt(parts[8],10) || 0,
+        hideWhenNoValue: parseInt(parts[9],10) || 0
+      });
+    }
+  }
+  if(groups.length === 0 && params.length === 0){
+    throw new Error("No se encontraron grupos ni parámetros válidos.");
+  }
+  return { meta, groups, params };
+}
+
+// ---------- Utilidades ----------
+function escapeHtml(s){
+  return String(s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+function showErr(el, msg){ el.textContent = msg; el.classList.add("show"); }
+function toast(msg, type){
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = "toast show" + (type ? " " + type : "");
+  setTimeout(() => el.classList.remove("show"), 2400);
+}
+function closeModals(){
+  document.querySelectorAll(".overlay").forEach(o => o.classList.remove("open"));
+  ui.editingParam = null;
+  ui.editingGroup = null;
+  ui.confirmAction = null;
+  document.getElementById("g-id").disabled = false;
+}
+
+// ---------- Event delegation (NO inline onclick — patrón ES5 seguro) ----------
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-act]");
+  if(!t) {
+    // Click en cuerpo de grupo (no botón) → activar filtro
+    const gItem = e.target.closest(".group-item");
+    if(gItem){
+      const gid = gItem.dataset.gid;
+      ui.activeGroup = gid === "all" ? "all" : parseInt(gid, 10);
+      render();
+    }
+    return;
+  }
+  const act = t.dataset.act;
+
+  if(act === "import"){
+    document.getElementById("file-input").click();
+  } else if(act === "export"){
+    exportTxt();
+  } else if(act === "new-param"){
+    openParamModal(null);
+  } else if(act === "new-group"){
+    openGroupModal(null);
+  } else if(act === "edit-param"){
+    e.stopPropagation();
+    openParamModal(t.dataset.guid);
+  } else if(act === "del-param"){
+    e.stopPropagation();
+    deleteParam(t.dataset.guid);
+  } else if(act === "edit-group"){
+    e.stopPropagation();
+    openGroupModal(parseInt(t.dataset.gid, 10));
+  } else if(act === "del-group"){
+    e.stopPropagation();
+    deleteGroup(parseInt(t.dataset.gid, 10));
+  } else if(act === "copy-guid"){
+    const g = t.dataset.guid;
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(g).then(() => toast("GUID copiado: " + g, "ok"));
+    }
+  } else if(act === "close-modal"){
+    closeModals();
+  } else if(act === "save-param"){
+    saveParam();
+  } else if(act === "save-group"){
+    saveGroup();
+  } else if(act === "confirm-yes"){
+    if(ui.confirmAction){ ui.confirmAction(); }
+    closeModals();
+  } else if(act === "regen-guid"){
+    document.getElementById("p-guid").value = uuidv4();
+  } else if(act === "reset"){
+    openConfirm(
+      "Reiniciar al estado original",
+      "Esto descartará todos los cambios y volverá al archivo original tal como se cargó por primera vez. ¿Continuar?",
+      "", "Reiniciar",
+      () => { state = JSON.parse(JSON.stringify(INITIAL_DATA)); ui.activeGroup = "all"; saveState(); render(); toast("Restaurado al estado original", "ok"); }
+    );
+  }
+});
+
+document.getElementById("p-group").addEventListener("change", syncNamePrefix);
+
+// Sort en cabeceras
+document.addEventListener("click", e => {
+  const th = e.target.closest("th.sortable");
+  if(!th) return;
+  const key = th.dataset.sort;
+  if(ui.sortKey === key){
+    ui.sortDir = ui.sortDir === "asc" ? "desc" : "asc";
+  } else {
+    ui.sortKey = key; ui.sortDir = "asc";
+  }
+  renderParams();
+});
+
+// Search & filter
+document.getElementById("search").addEventListener("input", e => {
+  ui.search = e.target.value.trim();
+  renderParams();
+});
+document.getElementById("filter-type").addEventListener("change", e => {
+  ui.filterType = e.target.value;
+  renderParams();
+});
+
+// File input
+document.getElementById("file-input").addEventListener("change", e => {
+  const f = e.target.files[0];
+  if(f){
+    openConfirm(
+      "Importar archivo",
+      `¿Cargar <b>${escapeHtml(f.name)}</b>?<br>Esto reemplazará el contenido actual del editor.`,
+      "", "Importar",
+      () => { importTxt(f); e.target.value = ""; }
+    );
+  }
+});
+
+// Cierre por click en overlay
+document.querySelectorAll(".overlay").forEach(o => {
+  o.addEventListener("click", e => { if(e.target === o) closeModals(); });
+});
+// Cierre por ESC
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape") closeModals();
+});
+
+// Atajos: Ctrl+S exportar, Ctrl+N nuevo parámetro
+document.addEventListener("keydown", e => {
+  if((e.ctrlKey||e.metaKey) && e.key === "s"){ e.preventDefault(); exportTxt(); }
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase() === "k"){ e.preventDefault(); document.getElementById("search").focus(); }
+});
+
+// ---------- Init ----------
+render();
+setSaveStatus("Listo · " + state.params.length + " parámetros cargados");
+</script>
+</body>
+</html>
